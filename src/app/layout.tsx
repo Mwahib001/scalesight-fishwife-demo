@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppShell } from "../components/AppShell";
 export const metadata: Metadata = {
-  title: "ScaleSight — Kelarune Planning Workspace",
+  title: "ScaleSight × NATURANA — Size-to-Buy Planning",
   description:
-    "A fictional ecommerce planning workspace demonstrating ScaleSight managed intelligence: demand, inventory, recommendations, and strategic guidance.",
+    "An illustrative NATURANA × Understatement planning concept. Public catalog information and synthetic operating assumptions; analysis maintained by ScaleSight.",
   robots: { index: false, follow: false },
   icons: { icon: "/icon.svg" },
 };

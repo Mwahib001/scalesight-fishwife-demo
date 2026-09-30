@@ -1,5 +1,7 @@
-import { AssumptionTable } from "../../components/AssumptionTable";
-export const metadata = { title: "Planning Assumptions | ScaleSight" };
+import { Assumptions } from "../../components/ManagedWorkflow";
+export const metadata = {
+  title: "Assumptions & Customisation | ScaleSight × NATURANA",
+};
 export default function Page() {
-  return <AssumptionTable />;
+  return <Assumptions />;
 }

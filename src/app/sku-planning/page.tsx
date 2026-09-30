@@ -1,5 +1,12 @@
-import { SKUDetail } from "../../components/SKUDetail";
-export const metadata = { title: "SKU Planning | ScaleSight" };
+import { VariantPlanning } from "../../components/VariantPlanning";
+export const metadata = {
+  title: "SKU & Size Planning | ScaleSight × NATURANA",
+};
+import { Suspense } from "react";
 export default function Page() {
-  return <SKUDetail />;
+  return (
+    <Suspense fallback={<p>Loading the supplied capsule…</p>}>
+      <VariantPlanning />
+    </Suspense>
+  );
 }

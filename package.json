@@ -1,5 +1,5 @@
 {
-  "name": "ecommerce-scalesight",
+  "name": "scalesight-naturana-demo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,10 +7,11 @@
     "build": "pnpm test && next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsc -p tsconfig.tests.json && node .test-build/tests/planning.test.js",
+    "test": "tsc -p tsconfig.tests.json && node .test-build/tests/naturana.test.js",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "format": "prettier --write src tests README.md playwright.config.ts"
+    "format": "prettier --write src tests README.md playwright.config.ts",
+    "verify:naturana": "pnpm test && pnpm typecheck && pnpm lint && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
     "lucide-react": "^1.45.0",
