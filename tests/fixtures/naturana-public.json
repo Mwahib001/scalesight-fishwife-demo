@@ -1,0 +1,597 @@
+[
+  {
+    "productId": "DL-BRA",
+    "size": "70A",
+    "publicSku": "U-329-001-70A",
+    "barcode": "4055403909388",
+    "naturanaPublicSku": "5687_842_70A_4_4055403909388"
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "70B",
+    "publicSku": "U-329-001-70B",
+    "barcode": "4055403909326",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "70C",
+    "publicSku": "U-329-001-70C",
+    "barcode": "4055403909500",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "70D",
+    "publicSku": "U-329-001-70D",
+    "barcode": "4055403909449",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "75A",
+    "publicSku": "U-329-001-75A",
+    "barcode": "4055403909371",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "75B",
+    "publicSku": "U-329-001-75B",
+    "barcode": "4055403909319",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "75C",
+    "publicSku": "U-329-001-75C",
+    "barcode": "4055403909494",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "75D",
+    "publicSku": "U-329-001-75D",
+    "barcode": "4055403909432",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "80A",
+    "publicSku": "U-329-001-80A",
+    "barcode": "4055403909364",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "80B",
+    "publicSku": "U-329-001-80B",
+    "barcode": "4055403909302",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "80C",
+    "publicSku": "U-329-001-80C",
+    "barcode": "4055403909487",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "80D",
+    "publicSku": "U-329-001-80D",
+    "barcode": "4055403909425",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "85A",
+    "publicSku": "U-329-001-85A",
+    "barcode": "4055403909357",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "85B",
+    "publicSku": "U-329-001-85B",
+    "barcode": "4055403909296",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "85C",
+    "publicSku": "U-329-001-85C",
+    "barcode": "4055403909470",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "85D",
+    "publicSku": "U-329-001-85D",
+    "barcode": "4055403909418",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "90A",
+    "publicSku": "U-329-001-90A",
+    "barcode": "4055403909340",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "90B",
+    "publicSku": "U-329-001-90B",
+    "barcode": "4055403909289",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "90C",
+    "publicSku": "U-329-001-90C",
+    "barcode": "4055403909463",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "90D",
+    "publicSku": "U-329-001-90D",
+    "barcode": "4055403909401",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "95A",
+    "publicSku": "U-329-001-95A",
+    "barcode": "4055403909333",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "95B",
+    "publicSku": "U-329-001-95B",
+    "barcode": "4055403909272",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "95C",
+    "publicSku": "U-329-001-95C",
+    "barcode": "4055403909456",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BRA",
+    "size": "95D",
+    "publicSku": "U-329-001-95D",
+    "barcode": "4055403909395",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "36",
+    "publicSku": "U-330-002-36",
+    "barcode": "4055403909197",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "38",
+    "publicSku": "U-330-002-38",
+    "barcode": "4055403909180",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "40",
+    "publicSku": "U-330-002-40",
+    "barcode": "4055403909173",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "42",
+    "publicSku": "U-330-002-42",
+    "barcode": "4055403909166",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "44",
+    "publicSku": "U-330-002-44",
+    "barcode": "4055403909159",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "46",
+    "publicSku": "U-330-002-46",
+    "barcode": "4055403909142",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "DL-BTM",
+    "size": "48",
+    "publicSku": "U-330-002-48",
+    "barcode": "4055403909135",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "75A",
+    "publicSku": "U-296-001-75A",
+    "barcode": "4055403909012",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "75B",
+    "publicSku": "U-296-001-75B",
+    "barcode": "4055403908978",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "75C",
+    "publicSku": "U-296-001-75C",
+    "barcode": "4055403909128",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "75D",
+    "publicSku": "U-296-001-75D",
+    "barcode": "4055403909081",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "75E",
+    "publicSku": "U-296-001-75E",
+    "barcode": "4055403909043",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "80A",
+    "publicSku": "U-296-001-80A",
+    "barcode": "4055403909005",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "80B",
+    "publicSku": "U-296-001-80B",
+    "barcode": "4055403908961",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "80C",
+    "publicSku": "U-296-001-80C",
+    "barcode": "4055403909111",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "80D",
+    "publicSku": "U-296-001-80D",
+    "barcode": "4055403909074",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "80E",
+    "publicSku": "U-296-001-80E",
+    "barcode": "4055403909036",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "85A",
+    "publicSku": "U-296-001-85A",
+    "barcode": "4055403908992",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "85B",
+    "publicSku": "U-296-001-85B",
+    "barcode": "4055403908954",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "85C",
+    "publicSku": "U-296-001-85C",
+    "barcode": "4055403909104",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "85D",
+    "publicSku": "U-296-001-85D",
+    "barcode": "4055403909067",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "85E",
+    "publicSku": "U-296-001-85E",
+    "barcode": "4055403909029",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "90A",
+    "publicSku": "U-296-001-90A",
+    "barcode": "4055403908985",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "90B",
+    "publicSku": "U-296-001-90B",
+    "barcode": "4055403908947",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "90C",
+    "publicSku": "U-296-001-90C",
+    "barcode": "4055403909098",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BRA",
+    "size": "90D",
+    "publicSku": "U-296-001-90D",
+    "barcode": "4055403909050",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "36",
+    "publicSku": "U-330-001-36",
+    "barcode": "4055403909265",
+    "naturanaPublicSku": "4687_656_36_3_4055403909265"
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "38",
+    "publicSku": "U-330-001-38",
+    "barcode": "4055403909258",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "40",
+    "publicSku": "U-330-001-40",
+    "barcode": "4055403909241",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "42",
+    "publicSku": "U-330-001-42",
+    "barcode": "4055403909234",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "44",
+    "publicSku": "U-330-001-44",
+    "barcode": "4055403909227",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "46",
+    "publicSku": "U-330-001-46",
+    "barcode": "4055403909210",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "PL-BTM",
+    "size": "48",
+    "publicSku": "U-330-001-48",
+    "barcode": "4055403909203",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "XS",
+    "publicSku": "U-285-004-XS",
+    "barcode": "7333468033888",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "S",
+    "publicSku": "U-285-004-S",
+    "barcode": "7333468033895",
+    "naturanaPublicSku": "15285_630_S_4_7333468033895"
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "M",
+    "publicSku": "U-285-004-M",
+    "barcode": "7333468033901",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "L",
+    "publicSku": "U-285-004-L",
+    "barcode": "7333468033918",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "XL",
+    "publicSku": "U-285-004-XL",
+    "barcode": "7333468033925",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "XXL",
+    "publicSku": "U-285-004-XXL",
+    "barcode": "7333468033932",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BRA",
+    "size": "3XL",
+    "publicSku": "U-285-004-3XL",
+    "barcode": "7333468033949",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "XS",
+    "publicSku": "U-260-003-XS",
+    "barcode": "7333468034021",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "S",
+    "publicSku": "U-260-003-S",
+    "barcode": "7333468034038",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "M",
+    "publicSku": "U-260-003-M",
+    "barcode": "7333468034045",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "L",
+    "publicSku": "U-260-003-L",
+    "barcode": "7333468034052",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "XL",
+    "publicSku": "U-260-003-XL",
+    "barcode": "7333468034069",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "XXL",
+    "publicSku": "U-260-003-XXL",
+    "barcode": "7333468034076",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CP-BTM",
+    "size": "3XL",
+    "publicSku": "U-260-003-3XL",
+    "barcode": "7333468034083",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "XS",
+    "publicSku": "U-257-002-XS",
+    "barcode": "7333468033604",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "S",
+    "publicSku": "U-257-002-S",
+    "barcode": "7333468033611",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "M",
+    "publicSku": "U-257-002-M",
+    "barcode": "7333468033628",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "L",
+    "publicSku": "U-257-002-L",
+    "barcode": "7333468033635",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "XL",
+    "publicSku": "U-257-002-XL",
+    "barcode": "7333468033642",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "XXL",
+    "publicSku": "U-257-002-XXL",
+    "barcode": "7333468033659",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BRA",
+    "size": "3XL",
+    "publicSku": "U-257-002-3XL",
+    "barcode": "7333468033666",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "XS",
+    "publicSku": "U-260-002-XS",
+    "barcode": "7333468034090",
+    "naturanaPublicSku": "14260_658_XS_3_7333468034090"
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "S",
+    "publicSku": "U-260-002-S",
+    "barcode": "7333468034106",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "M",
+    "publicSku": "U-260-002-M",
+    "barcode": "7333468034113",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "L",
+    "publicSku": "U-260-002-L",
+    "barcode": "7333468034120",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "XL",
+    "publicSku": "U-260-002-XL",
+    "barcode": "7333468034137",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "XXL",
+    "publicSku": "U-260-002-XXL",
+    "barcode": "7333468034144",
+    "naturanaPublicSku": null
+  },
+  {
+    "productId": "CH-BTM",
+    "size": "3XL",
+    "publicSku": "U-260-002-3XL",
+    "barcode": "7333468034151",
+    "naturanaPublicSku": null
+  }
+]

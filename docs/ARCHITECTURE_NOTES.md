@@ -1,6 +1,6 @@
 # NATURANA architecture notes
 
-Status: repository inspection complete; implementation awaits the technical PDF and its extraction. The application has not yet been converted.
+Status: repository inspection and all 130 PDF pages reviewed. Phase 0 extraction is complete; the application replacement follows this documentation commit.
 
 ## Existing workspace
 
@@ -47,3 +47,7 @@ Legacy routes also exist at `/forecast`, `/customer-growth`, `/partnership`, and
 - Add `verify:naturana` for canonical data, action counts, identifiers, OTB, presets, curves, exchange restrictions, copy, visible disclaimer, configuration and navigation checks. Missing source fixtures must fail validation, never silently pass.
 
 Read the installed Next.js guides `01-app/01-getting-started/03-layouts-and-pages.md` and `05-server-and-client-components.md` before implementation, as required by `AGENTS.md`. Pages/layouts remain server components by default; interactive state belongs in client components.
+
+## Confirmed NATURANA routes
+
+Retain `/`, `/sku-planning`, `/scenario`, `/managed-intelligence`, `/assumptions`; add `/size-translation`, `/size-demand`, `/fit-signal`, `/next-buy`, `/forecast-learning`. Remove the other Kelarune pages and legacy redirects. The ten routes are fixed by PDF sections 16–26. The app will consume `naturana.rows.ts` through typed product enrichment and central metric helpers. Independent test fixtures come from Appendix B and the cross-checked operating table.
