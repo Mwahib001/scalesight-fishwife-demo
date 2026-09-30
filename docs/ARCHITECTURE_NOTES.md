@@ -1,8 +1,8 @@
 # NATURANA architecture notes
 
-Status: repository inspection and all 130 PDF pages reviewed. Phase 0 extraction is complete; the application replacement follows this documentation commit.
+Status: all 130 PDF pages reviewed, Phase 0 extraction committed, and the NATURANA V1 replacement implemented and verified. The inspection below records the original architecture; the final implementation is described at the end.
 
-## Existing workspace
+## Original workspace inspected before replacement
 
 - Next.js 16.3.4 App Router, React 19, strict TypeScript, pnpm. Routes are in `src/app`; `src/app/layout.tsx` provides metadata and `AppShell`.
 - `src/components/AppShell.tsx` owns the desktop sidebar, mobile navigation, primary links, header, footer, and shared planning provider. Retain its layout, focus handling, and responsive behavior.
@@ -12,7 +12,7 @@ Status: repository inspection and all 130 PDF pages reviewed. Phase 0 extraction
 - `MetricCard`, heading/panel/table styles, navigation patterns and chart primitives are reusable. `ui.tsx` also contains Kelarune selectors and a hardcoded planning date; separate these dependencies when adapting shared components.
 - Currency formatting currently uses USD; NATURANA requires EUR. Do not carry forward hardcoded review timestamps or purchase-order dates.
 
-## Existing route inventory (not the missing PDF's page inventory)
+## Original route inventory
 
 | Route | Current purpose |
 | --- | --- |
@@ -26,7 +26,7 @@ Status: repository inspection and all 130 PDF pages reviewed. Phase 0 extraction
 | `/managed-intelligence` | Managed Intelligence |
 | `/assumptions` | Planning Assumptions |
 
-Legacy routes also exist at `/forecast`, `/customer-growth`, `/partnership`, and `/advisor-brief`. Final retained routes and removals must be mapped against the PDF, not assumed from the old demo.
+Legacy routes also existed at `/forecast`, `/customer-growth`, `/partnership`, and `/advisor-brief`. The confirmed NATURANA route mapping below replaces this inventory.
 
 ## Integration approach
 
@@ -51,3 +51,9 @@ Read the installed Next.js guides `01-app/01-getting-started/03-layouts-and-page
 ## Confirmed NATURANA routes
 
 Retain `/`, `/sku-planning`, `/scenario`, `/managed-intelligence`, `/assumptions`; add `/size-translation`, `/size-demand`, `/fit-signal`, `/next-buy`, `/forecast-learning`. Remove the other Kelarune pages and legacy redirects. The ten routes are fixed by PDF sections 16–26. The app will consume `naturana.rows.ts` through typed product enrichment and central metric helpers. Independent test fixtures come from Appendix B and the cross-checked operating table.
+
+## Implemented V1
+
+The ten confirmed routes now replace the previous demo. AppShell retains the ScaleSight sidebar, mobile focus management and design tokens; the full disclaimer is a named sticky region. React Context holds supplied scenario presets and uncalibrated custom inputs. Variant selection uses a native modal dialog and query-string deep links. Data and source prices are local; Recharts renders the supplied size curves without animation.
+
+`src/data/naturana.ts` enriches the source rows with PDF product metadata, the four observed NATURANA SKUs, canonical preset inputs and optional supplied spotlight evidence. `src/engine/naturana.ts` centralizes defined calculations and reducer transitions. `naturana.copy.ts` contains source page copy. The active Node acceptance test is `tests/naturana.test.ts`; the browser suite is `tests/browser/naturana.spec.ts`. Obsolete components, data, engines, pages and old audit/design-reference artifacts have been removed.

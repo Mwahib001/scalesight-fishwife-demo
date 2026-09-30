@@ -8,7 +8,7 @@
 
 These do not require approval to implement the supplied V1 behavior.
 
-**Q2 — Arbitrary scenario combinations lack coefficients.** Default: select the four explicit presets; no interpolated outputs or unrestricted sliders. A future custom model needs a calculation rule from Arman.
+**Q2 — Arbitrary scenario combinations lack coefficients.** Default: select the four explicit presets. Sliders and Next Buy controls enter an explicitly uncalibrated custom state and suppress outputs; no interpolation. A future custom model needs a calculation rule from Arman.
 
 **Q3 — Incoming inventory lacks reliable receipt dates.** Default: display exact supplied incoming quantities and current cover. No dated arrivals or fabricated time-phased inventory forecasts. Add dated fixtures only when supplied.
 
