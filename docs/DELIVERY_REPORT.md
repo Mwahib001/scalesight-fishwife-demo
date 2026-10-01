@@ -25,7 +25,7 @@ Custom scenario and allocation controls display “Custom: not calibrated in V1�
 9. **Derived fields versus canonical illustrations:** calculate fully defined relationships while preserving source cover, curves, risk states and preset summaries.
 10. **Downside/custom/Next Buy output rules:** unavailable; no fake projected demand, custom allocation, promotion effect or additional preset. Product allocations appear only for Base.
 11. **PDF cross-reference errors:** cohort references use Section 13 / Appendix F; allocation references use Section 15 / Appendix G.
-12. **Pilot CTA destination:** PDF supplies no URL; retain existing `mailto:arman@scalesight.org`. The app sends no email.
+12. **Pilot CTA destination:** superseded by the user's later request. Both commercial endpoints now offer “Email us” at the existing mailto address and “Book a call” in an embedded Calendly dialog. `NEXT_PUBLIC_CALENDLY_URL` configures the scheduling URL, defaulting to the supplied `https://calendly.com/kazmiarmanmehdi/30min`. Planning fixtures stay local; Calendly loads only after the booking button is clicked.
 
 No requested page is omitted. The missing mechanics above are the limits explicitly identified in the PDF/email; a live calibrated version needs additional rules and inputs.
 

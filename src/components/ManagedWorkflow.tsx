@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CheckCheck, ArrowRight, Users, Workflow } from "lucide-react";
+import { CheckCheck, Mail, Users, Workflow } from "lucide-react";
 import { pages, workflow, customizationCopy } from "../data/naturana.copy";
 import {
   tagline,
@@ -18,6 +18,7 @@ import {
   Interpretation,
 } from "./ui";
 import { AnalystOverride } from "./FitSignal";
+import { BookCallButton } from "./BookCallButton";
 export function CommercialEndpoint() {
   return (
     <section className="pilot-panel" id="pilot">
@@ -33,11 +34,12 @@ export function CommercialEndpoint() {
       </p>
       <div className="endpoint-actions">
         <a
-          className="button"
+          className="button secondary"
           href="mailto:arman@scalesight.org?subject=NATURANA%20Planning%20Pilot"
         >
-          Discuss a NATURANA Planning Pilot <ArrowRight size={16} />
+          <Mail size={16} aria-hidden="true" /> Email us
         </a>
+        <BookCallButton />
         <PlanLink href="/assumptions#customisation">
           See what could be customised
         </PlanLink>

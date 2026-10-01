@@ -4,7 +4,7 @@ An illustrative NATURANA × Understatement capsule workspace: eight products, 85
 
 **Analysis maintained by ScaleSight. Decisions made with NATURANA.**
 
-Public catalog information is taken from the supplied PDF. All operating inputs and recommendations are synthetic. There are no runtime data connections, scraping, generated histories, fabricated receipt dates or order submissions.
+Public catalog information is taken from the supplied PDF. All operating inputs and recommendations are synthetic. There are no planning-data connections, scraping, generated histories, fabricated receipt dates or order submissions. The optional booking dialog loads Calendly when opened.
 
 ## Run and verify
 
@@ -37,6 +37,7 @@ pnpm verify:naturana
 - `src/engine/naturana.ts` calculates only defined relationships, preserves source cover display precision and owns shared scenario state transitions.
 - Exact source copy and page references are preserved in `docs/spec/PAGE_COPY.md` and `docs/SPEC_EXTRACTION.md`.
 - No arbitrary allocation/scenario model, Downside preset, receipt-date projection, complete exchange ledger, additional set thresholds or ordinary-row analyst narratives are supplied. These remain absent or explicitly uncalibrated; see `docs/OPEN_QUESTIONS.md`.
-- The pilot CTA retains the existing email destination, `arman@scalesight.org`. It opens the visitor’s email application; this workspace sends no messages.
+- Both commercial endpoints offer **Email us** (`arman@scalesight.org`) and **Book a call**, which opens Calendly inside a modal. The scheduler defaults to `https://calendly.com/kazmiarmanmehdi/30min`. To override it, copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_CALENDLY_URL` before building (rebuild after changes). No planning data is passed to Calendly.
+- Booking uses Calendly’s [documented JavaScript inline embed](https://calendly.com/help/advanced-calendly-embed-for-developers), loaded only after clicking **Book a call**.
 
 The previous Kelarune fixtures, forecasting engines, unrelated pages, legacy redirects and old demo evidence have been removed. Source documents are retained for traceability.

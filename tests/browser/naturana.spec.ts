@@ -277,7 +277,7 @@ test("managed service, customisation, primary navigation and mobile keyboard", a
     "What actually deserves management attention?",
   );
   await expect(
-    page.getByRole("link", { name: "Discuss a NATURANA Planning Pilot" }),
+    page.getByRole("link", { name: "Email us", exact: true }),
   ).toHaveAttribute("href", /^mailto:arman@scalesight.org/);
   await page
     .getByRole("link", { name: "See what could be customised" })

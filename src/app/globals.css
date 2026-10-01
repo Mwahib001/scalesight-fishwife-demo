@@ -3134,3 +3134,35 @@ th {
 .priority-4::before {
   background: #b87b17;
 }
+
+.booking-dialog {
+  width: min(1000px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  background: #fff;
+}
+.booking-dialog::backdrop {
+  background: #07111fb3;
+}
+.booking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.booking-content > p {
+  padding: 16px 20px;
+}
+.booking-content > p a {
+  text-decoration: underline;
+}
+.booking-embed {
+  min-width: 280px;
+  height: min(700px, calc(100dvh - 120px));
+}

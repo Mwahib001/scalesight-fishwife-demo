@@ -37,3 +37,11 @@ Desktop and mobile screenshots are generated under ignored `test-results/`. The 
 ## Deliberate limits
 
 These checks establish the supplied V1 behavior, not an unspecified production forecasting model. Custom scenario combinations, Downside, custom allocations, dated incoming projections and expanded exchange/set-risk models remain uncalibrated or absent as directed by the email. All dispositions and PDF conflicts are listed in `OPEN_QUESTIONS.md` and `DELIVERY_REPORT.md`.
+
+## Requested email and Calendly follow-up
+
+The later user request changes both commercial endpoints to “Email us” plus “Book a call”. Calendly uses its official JavaScript inline embed inside a native modal dialog. `NEXT_PUBLIC_CALENDLY_URL` is supported, with the supplied scheduling link as the default and documented in `.env.example`.
+
+Typecheck, lint, the 14 data acceptance groups and production build passed. Six targeted browser checks passed, covering both affected pages, existing managed-service navigation, lazy widget loading, configured URL, no new tab/navigation, closing/reopening, focus restoration, mobile width, and script-failure fallback. External availability is mocked for deterministic automated tests. A separate live-browser check loaded the real widget and confirmed the “Select a Date & Time” screen for Arman Mehdi Kazmi's “30 Minute Meeting”; no booking was submitted.
+
+Visual inspection of live desktop/mobile screenshots identified a CSS-reset centering issue, fixed by explicitly centering the dialog. The booking regression suite includes a centering assertion. Local screenshots remain under ignored `test-results/`.

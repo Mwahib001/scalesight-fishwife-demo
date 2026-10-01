@@ -30,6 +30,6 @@ These do not require approval to implement the supplied V1 behavior.
 
 **Q11 — Incorrect cross-references (PDF pp. 47, 59, 65).** “Cohort table from Section 10” refers in context to Section 13 / Appendix F; “allocation table from Section 12” refers to Section 15 / Appendix G. Use the actual supplied learning and allocation tables.
 
-**Q12 — Existing commercial CTA.** The PDF specifies “Discuss a NATURANA Planning Pilot” but no destination. Retain the existing `mailto:arman@scalesight.org` destination with the PDF label. The app does not send messages.
+**Q12 — Commercial CTA, resolved by later user instruction.** The user requested replacing the PDF's “Discuss a NATURANA Planning Pilot” label with “Email us” and adding “Book a call” wherever it appears. Email retains `mailto:arman@scalesight.org`; booking opens Calendly inside the page, using `NEXT_PUBLIC_CALENDLY_URL` (default `https://calendly.com/kazmiarmanmehdi/30min`). This explicit user change supersedes the original CTA copy. Planning data stays local; the scheduler contacts Calendly only when opened.
 
 These documented defaults allow V1 to proceed. Only future custom modeling, dated inventory, expanded exchange mapping and calibrated set thresholds need new source rules.
