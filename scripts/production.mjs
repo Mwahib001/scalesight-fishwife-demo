@@ -85,7 +85,7 @@ try {
       ["build", "--webpack", ...process.argv.slice(3)],
       {
         FISHWIFE_RUNTIME_DIR: "",
-        NEXT_DEPLOYMENT_ID: randomUUID(),
+        NEXT_DEPLOYMENT_ID: randomUUID().replaceAll("-", ""),
       },
     );
   } else {
