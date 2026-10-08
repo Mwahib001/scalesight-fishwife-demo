@@ -295,3 +295,229 @@ test("Mobile navigation contains focus and routes remain reachable", async ({
   );
   await expect(dialog).not.toBeVisible();
 });
+
+test("Every sidebar destination works through client navigation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const [route, title] of routes) {
+    await page.locator(`nav a[href="${route}"]`).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+    await expect(page.locator('nav a[aria-current="page"]')).toHaveAttribute(
+      "href",
+      route,
+    );
+  }
+});
+
+test("All PO rows open; same-page analysis dismisses the drawer", async ({
+  page,
+}) => {
+  await page.goto("/supply-commitments");
+  const rows = page
+    .getByRole("region", { name: "Canonical purchase orders" })
+    .locator("tbody tr");
+  for (let i = 0; i < 7; i++) {
+    const id = await rows.nth(i).locator("td").nth(1).innerText();
+    await rows.nth(i).locator("td").nth(1).click();
+    await expect(page.getByRole("dialog")).toContainText(id);
+    if ([1, 2, 4].includes(i)) {
+      await expect(page.getByRole("dialog")).not.toContainText(
+        "Needs Fishwife decision",
+      );
+      await expect(page.getByRole("dialog")).toContainText(
+        "Monitoring next cycle",
+      );
+    }
+    await page.getByRole("button", { name: "Close decision" }).click();
+  }
+  await rows.nth(5).getByRole("button").click();
+  await page
+    .getByRole("dialog")
+    .getByRole("link", { name: "Explore the analysis" })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+});
+
+test("Mobile footer navigation and resize release the menu and scroll lock", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.locator(".sidebar")).toBeHidden();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("link", { name: "How the service works" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    routes[9][1],
+  );
+  await expect(page.locator(".sidebar")).toBeHidden();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator(".nav-backdrop")).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+  await expect(page.locator(".sidebar")).toBeVisible();
+});
+
+test("All demand contexts retain only supplied data and disclose all chart gaps", async ({
+  page,
+}) => {
+  await page.goto("/demand");
+  await page.getByText("View weekly observations and source gaps").click();
+  const chart = page.getByRole("region", {
+    name: "Weekly observations",
+    exact: true,
+  });
+  await expect(chart.locator("tbody tr")).toHaveCount(13);
+  await expect(
+    chart.getByText("no supplied observation", { exact: true }),
+  ).toHaveCount(4);
+  const skus = await page
+    .getByLabel("Product context")
+    .locator("option")
+    .evaluateAll((nodes) => nodes.map((n) => (n as HTMLOptionElement).value));
+  for (const sku of skus) {
+    await page.getByLabel("Product context").selectOption(sku);
+    await page.getByRole("button", { name: "ALL", exact: true }).click();
+    await expect(
+      page
+        .locator(".metric-grid .metric")
+        .filter({ hasText: "Variance vs baseline" }),
+    ).not.toContainText("—");
+    const channels = page.locator(".channel-tabs button");
+    for (let i = 1; i < (await channels.count()); i++) {
+      await channels.nth(i).click();
+      await expect(page.locator(".empty-state")).toBeVisible();
+      await expect(page.locator(".metric-grid .metric").first()).toContainText(
+        "—",
+      );
+    }
+  }
+});
+
+test("Every recovery comparison updates its selected quantities and cost", async ({
+  page,
+}) => {
+  await page.goto("/po-intervention");
+  const cards = page.locator(".option-card");
+  for (const [i, cost, early, standard] of [
+    [0, "$0", "0", "6,000"],
+    [1, "$8,400", "6,000", "0"],
+    [2, "$5,600", "4,000", "2,000"],
+    [3, "$5,600", "4,000", "2,000"],
+  ] as const) {
+    await cards.nth(i).click();
+    await expect(cards.nth(i)).toHaveAttribute("aria-pressed", "true");
+    const panel = page.locator(".two-col>.panel");
+    await expect(panel).toContainText(cost);
+    await expect(panel).toContainText(
+      `${early} tins on early freight · ${standard} on standard freight`,
+    );
+  }
+});
+
+test("Scenario assumptions acknowledge all valid controls and keyboard tabs", async ({
+  page,
+}) => {
+  await page.goto("/scenario");
+  await page.getByLabel("Receipt delay").fill("2");
+  await page.getByLabel("Protected demand").fill("1500");
+  await page.getByLabel("Expedite premium").fill("2400");
+  const summary = page.locator(".source-context").first();
+  await expect(summary).toContainText("Receipt delay override: 2 weeks");
+  await expect(summary).toContainText("Protected demand: 1,500 tins");
+  await expect(summary).toContainText("Expedite premium: $2,400 USD");
+  await page.getByRole("tab").first().focus();
+  await page.keyboard.press("End");
+  await expect(page.getByRole("tab").last()).toBeFocused();
+  await expect(page.getByRole("tab").last()).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await page.keyboard.press("Home");
+  await expect(page.getByRole("tab").first()).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await page.getByRole("button", { name: "Reset to current plan" }).click();
+  await expect(summary).toContainText("Receipt delay override: 0 weeks");
+  await expect(summary).toContainText("Protected demand: Not specified");
+});
+
+test("Disclosure navigation closes the persistent disclosure", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const disclosure = page.getByTestId("illustrative-disclaimer");
+  await disclosure.locator("summary").click();
+  await disclosure.getByRole("link").click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    routes[10][1],
+  );
+  await expect(disclosure).not.toHaveAttribute("open");
+});
+
+test("Every weekly decision follows through to its analysis and releases the drawer", async ({
+  page,
+}) => {
+  for (let i = 0; i < 4; i++) {
+    await page.goto("/");
+    await page.locator(".decision-card").nth(i).getByRole("button").click();
+    const link = page
+      .getByRole("dialog")
+      .getByRole("link", { name: "Explore the analysis" });
+    const target = await link.getAttribute("href");
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`${target}$`));
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+  }
+});
+
+test("Internal links, source anchors and loaded brand assets resolve across all routes", async ({
+  page,
+}) => {
+  const paths = new Set(routes.map(([route]) => route));
+  const targets = new Set<string>();
+  for (const [route] of routes) {
+    await page.goto(route);
+    const links = await page
+      .locator('a[href^="/"]')
+      .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href")!));
+    for (const link of links) {
+      expect(paths.has(link.split("#")[0])).toBe(true);
+      if (link.includes("#")) targets.add(link);
+    }
+    await page.locator(".page-footer").scrollIntoViewIfNeeded();
+    for (const img of await page.locator("img").all()) {
+      await img.scrollIntoViewIfNeeded();
+      await expect(img).toHaveJSProperty("complete", true);
+      expect(
+        await img.evaluate((n) => (n as HTMLImageElement).naturalWidth),
+      ).toBeGreaterThan(0);
+    }
+  }
+  for (const target of targets) {
+    await page.goto(target);
+    await expect(page.locator(`[id="${target.split("#")[1]}"]`)).toHaveCount(1);
+  }
+});
+
+test("Supply timeline status labels fit their cells at laptop widths", async ({
+  page,
+}) => {
+  await page.goto("/supply-commitments");
+  for (const width of [1440, 1280, 1024, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const badge of await page.locator(".timeline .badge").all()) {
+      expect(
+        await badge.evaluate((el) => {
+          const cell = el.parentElement!.getBoundingClientRect();
+          const label = el.getBoundingClientRect();
+          return label.right <= cell.right + 1 && label.left >= cell.left;
+        }),
+      ).toBe(true);
+    }
+  }
+});

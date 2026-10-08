@@ -8,7 +8,7 @@ import {
   validateScenario,
   type ScenarioState,
 } from "../engine/fishwife";
-import { number } from "../engine/formatters";
+import { number, usd } from "../engine/formatters";
 import { AnalystNote, Badge, Metric, Missing, PageHeading } from "./ui";
 type Field = Exclude<keyof ScenarioState, "preset">;
 const fields: [
@@ -179,9 +179,17 @@ export function ScenarioView() {
             <Metric label="Units exposed" value="—" />
             <Metric label="Incremental cash" value="—" />
           </div>
-          <p className="source-context">
-            Last valid demand assumption: {number(outputs.demand)} tins/week.
-            Exact operational outputs: Not specified in demo source.
+          <p className="source-context" aria-live="polite">
+            Last valid demand assumption: {number(outputs.demand)} tins/week.{" "}
+            Receipt delay override: {state.delay} weeks. Protected demand:{" "}
+            {state.protectedDemand === null
+              ? "Not specified"
+              : `${number(state.protectedDemand)} tins`}
+            . Expedite premium:{" "}
+            {state.premium === null
+              ? "Not specified"
+              : `${usd(state.premium)} USD`}
+            . Exact operational outputs: Not specified in demo source.
           </p>
           <button className="secondary-button scenario-reset" onClick={reset}>
             <RotateCcw size={14} />

@@ -116,14 +116,14 @@ export function DemandChart({ learning = false }: { learning?: boolean }) {
             <text x={x(i)} y="263" textAnchor="middle" style={{ fontSize: 9 }}>
               {r.label}
             </text>
-            {r.actual === null && r.forward === null && (
+            {r.actual === null && (
               <text
                 x={x(i)}
                 y="280"
                 textAnchor="middle"
                 style={{ fontSize: 8 }}
               >
-                no observation
+                no actual
               </text>
             )}
           </g>
@@ -166,7 +166,12 @@ export function DemandChart({ learning = false }: { learning?: boolean }) {
       </p>
       <details className="chart-data">
         <summary>View weekly observations and source gaps</summary>
-        <div className="table-scroll">
+        <div
+          className="table-scroll"
+          role="region"
+          aria-label="Weekly observations"
+          tabIndex={0}
+        >
           <table>
             <caption className="sr-only">
               Spanish Lemon weekly chart data
@@ -174,22 +179,30 @@ export function DemandChart({ learning = false }: { learning?: boolean }) {
             <thead>
               <tr>
                 <th scope="col">Week</th>
-                <th scope="col">Previous plan</th>
-                <th scope="col">Observed tins</th>
-                <th scope="col">Forward assumption</th>
+                <th className="numeric" scope="col">
+                  Previous plan
+                </th>
+                <th className="numeric" scope="col">
+                  Observed tins
+                </th>
+                <th className="numeric" scope="col">
+                  Forward assumption
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.week}>
                   <th scope="row">{r.label}</th>
-                  <td>{number(r.baseline)}</td>
-                  <td>
+                  <td className="numeric">{number(r.baseline)}</td>
+                  <td className="numeric">
                     {r.actual === null
                       ? "no supplied observation"
                       : number(r.actual)}
                   </td>
-                  <td>{r.forward === null ? "—" : number(r.forward)}</td>
+                  <td className="numeric">
+                    {r.forward === null ? "—" : number(r.forward)}
+                  </td>
                 </tr>
               ))}
             </tbody>

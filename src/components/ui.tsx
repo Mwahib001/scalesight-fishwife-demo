@@ -138,12 +138,14 @@ export function ProductImage({
 export function PlanLink({
   href,
   children,
+  onNavigate,
 }: {
   href: string;
   children: React.ReactNode;
+  onNavigate?: () => void;
 }) {
   return (
-    <Link className="text-link" href={href}>
+    <Link className="text-link" href={href} onNavigate={onNavigate}>
       {children}
       <ArrowRight size={15} />
     </Link>
@@ -206,11 +208,13 @@ export function DataTable({
   rows,
   caption,
   numeric = [],
+  onRowSelect,
 }: {
   headers: string[];
   rows: React.ReactNode[][];
   caption: string;
   numeric?: number[];
+  onRowSelect?: (index: number) => void;
 }) {
   return (
     <div
@@ -236,7 +240,22 @@ export function DataTable({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i}>
+            <tr
+              key={i}
+              className={onRowSelect ? "selectable-row" : undefined}
+              onClick={
+                onRowSelect
+                  ? (event) => {
+                      if (
+                        !(event.target as HTMLElement).closest(
+                          "button,a,input,select",
+                        )
+                      )
+                        onRowSelect(i);
+                    }
+                  : undefined
+              }
+            >
               {row.map((cell, j) => (
                 <td className={numeric.includes(j) ? "numeric" : ""} key={j}>
                   {cell}

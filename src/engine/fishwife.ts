@@ -60,7 +60,7 @@ export function confidence(
   recentEvent: boolean,
   censored: boolean,
 ): Confidence {
-  return censored || cleanWeeks < 4
+  return censored || !Number.isInteger(cleanWeeks) || cleanWeeks < 4
     ? "LOW"
     : cleanWeeks >= 8 && !recentEvent
       ? "HIGH"
@@ -72,6 +72,7 @@ export type Projection = {
   physical: number;
   unmet: number;
   safetyBreach: boolean;
+  stockout: boolean;
 };
 /** Convention explicit. Demand already includes protected allocation; no second subtraction. */
 export function projectedInventory(
@@ -84,10 +85,12 @@ export function projectedInventory(
   if (
     !finite(onHand) ||
     !finite(safety) ||
+    onHand < 0 ||
+    safety < 0 ||
     !order ||
     demand.length !== receipts.length ||
-    !demand.every(finite) ||
-    !receipts.every(finite)
+    !demand.every((value) => finite(value) && value >= 0) ||
+    !receipts.every((value) => finite(value) && value >= 0)
   )
     return null;
   let physical = onHand,
@@ -96,12 +99,15 @@ export function projectedInventory(
     const r = receipts[i] as number,
       required = d as number;
     let unmet: number;
+    let afterDemand: number;
     if (order === "receipt-before-demand") {
       unmet = Math.max(0, required - physical - r);
       physical = Math.max(0, physical + r - required);
+      afterDemand = physical;
     } else {
       unmet = Math.max(0, required - physical);
-      physical = Math.max(0, physical - required) + r;
+      afterDemand = Math.max(0, physical - required);
+      physical = afterDemand + r;
     }
     book += r - required;
     return {
@@ -109,12 +115,13 @@ export function projectedInventory(
       book,
       physical,
       unmet,
-      safetyBreach: physical < safety,
+      safetyBreach: afterDemand < safety,
+      stockout: afterDemand <= 0,
     };
   });
 }
 export const stockoutWeek = (p: readonly Projection[] | null) =>
-  p?.find((x) => x.physical <= 0 || x.unmet > 0)?.week ?? null;
+  p?.find((x) => x.stockout || x.unmet > 0)?.week ?? null;
 export const safetyBreachWeek = (p: readonly Projection[] | null) =>
   p?.find((x) => x.safetyBreach)?.week ?? null;
 export const skuById = (id: string): Sku => {

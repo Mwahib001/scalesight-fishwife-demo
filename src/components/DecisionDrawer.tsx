@@ -53,7 +53,8 @@ export function DecisionDrawer({
         ],
         [
           "SCALESIGHT RECOMMENDATION",
-          narrative?.recommendation ?? "HOLD the reviewed current commitment.",
+          narrative?.recommendation ??
+            `${sku.label}: retain the supplied current commitment and monitor readiness.`,
         ],
         [
           "FISHWIFE DECISION REQUIRED",
@@ -102,7 +103,12 @@ export function DecisionDrawer({
           </div>
         </div>
         <div className="drawer-status">
-          <Badge label={decision?.label ?? po!.status} tone="blue" /> <Stamp />
+          <Badge label={decision?.label ?? po!.status} tone="blue" />
+          {narrative ? (
+            <Stamp />
+          ) : (
+            <span className="small-copy">Monitoring next cycle</span>
+          )}
         </div>
         <div className="drawer-sections">
           {sections.map(([title, copy]) => (
@@ -118,7 +124,9 @@ export function DecisionDrawer({
         <div className="drawer-footer">
           <Reviewed />
           {narrative && (
-            <PlanLink href={narrative.href}>Explore the analysis</PlanLink>
+            <PlanLink href={narrative.href} onNavigate={onClose}>
+              Explore the analysis
+            </PlanLink>
           )}
         </div>
         <p className="source-context">

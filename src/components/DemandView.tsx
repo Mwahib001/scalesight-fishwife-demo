@@ -96,6 +96,10 @@ export function DemandView() {
               unit="tins/week"
             />
             <Metric
+              label="Variance vs baseline"
+              value={aggregate ? percent(m.variance) : "—"}
+            />
+            <Metric
               label="Post-event persistence"
               value={hasSeries ? percent(learning.uplift) : "—"}
             />

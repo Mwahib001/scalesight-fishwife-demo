@@ -181,4 +181,36 @@ test("13-week chart leaves observation gaps null; no channel splits or invented 
   for (const id of ["TUN-SG", "SAR-HP", "MAC-CHILI"])
     assert.ok(!fixture.pos.some((p) => p.sku === id));
 });
+test("Late receipts cannot hide an earlier stockout or safety breach", () => {
+  const late = e.projectedInventory(
+    100,
+    [100],
+    [100],
+    30,
+    "receipt-after-demand",
+  )!;
+  assert.equal(late[0].physical, 100);
+  assert.equal(late[0].unmet, 0);
+  assert.equal(e.stockoutWeek(late), 1);
+  assert.equal(e.safetyBreachWeek(late), 1);
+  const early = e.projectedInventory(
+    100,
+    [100],
+    [100],
+    30,
+    "receipt-before-demand",
+  )!;
+  assert.equal(e.stockoutWeek(early), null);
+  assert.equal(e.safetyBreachWeek(early), null);
+  assert.equal(
+    e.projectedInventory(100, [-1], [0], 30, "receipt-before-demand"),
+    null,
+  );
+  assert.equal(
+    e.projectedInventory(-1, [1], [0], 30, "receipt-before-demand"),
+    null,
+  );
+  for (const weeks of [NaN, Infinity, -1, 4.5])
+    assert.equal(e.confidence(weeks, false, false), "LOW");
+});
 console.log(`\n${passed} Fishwife acceptance groups passed.`);

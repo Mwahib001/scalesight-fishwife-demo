@@ -111,7 +111,7 @@ export function SupplyView() {
       <section style={{ marginTop: 28 }}>
         <SectionHeading
           title="The commitments behind the decisions"
-          description="Read-only records. Click a product to review the decision context."
+          description="Read-only records. Click a row or product to review the decision context."
         />
         <DataTable
           headers={[
@@ -127,6 +127,7 @@ export function SupplyView() {
           ]}
           numeric={[2, 3, 4, 6]}
           caption="Canonical purchase orders"
+          onRowSelect={(index) => setSelected(fixture.pos[index])}
           rows={fixture.pos.map((p) => {
             const s = skuById(p.sku);
             const d = fixture.decisions.find((d) => d.sku === s.id);
@@ -153,7 +154,13 @@ export function SupplyView() {
               <Badge
                 key="status"
                 label={p.status}
-                tone={p.status === "CONFIRMED" ? "green" : "red"}
+                tone={
+                  p.status === "CONFIRMED"
+                    ? "green"
+                    : p.status === "RESEQUENCE CANDIDATE"
+                      ? "yellow"
+                      : "red"
+                }
               />,
               d?.label ?? s.label,
             ];

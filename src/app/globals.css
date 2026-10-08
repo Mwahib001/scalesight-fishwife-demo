@@ -1019,6 +1019,17 @@ tbody tr:hover {
   text-underline-offset: 3px;
   text-align: left;
 }
+.timeline-wrap {
+  overflow: auto;
+}
+.timeline .badge {
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.timeline .badge svg {
+  flex-shrink: 0;
+}
 .timeline {
   display: grid;
   grid-template-columns:
@@ -1944,6 +1955,7 @@ tbody tr:hover {
   .sidebar {
     width: 245px;
     transform: translateX(-100%);
+    visibility: hidden;
     top: 0;
     padding-top: 54px;
     border-right: 1px solid var(--ink);
@@ -1951,6 +1963,7 @@ tbody tr:hover {
   }
   .sidebar.is-open {
     transform: none;
+    visibility: visible;
   }
   .mobile-close {
     position: absolute;
@@ -2270,4 +2283,11 @@ tbody tr:hover {
 }
 .trajectory-pending .safety-line {
   top: 26px;
+}
+
+.selectable-row {
+  cursor: pointer;
+}
+.selectable-row:hover {
+  background: var(--paper);
 }

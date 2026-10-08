@@ -38,6 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   const sidebar = useRef<HTMLElement>(null);
+  const disclosure = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (!menu) return;
     const trigger = document.activeElement as HTMLElement;
@@ -59,10 +60,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
       }
     };
+    const desktop = window.matchMedia("(min-width: 761px)");
+    const onResize = () => {
+      if (desktop.matches) setMenu(false);
+    };
+    desktop.addEventListener("change", onResize);
     document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = old;
       document.removeEventListener("keydown", onKey);
+      desktop.removeEventListener("change", onResize);
       trigger?.focus();
     };
   }, [menu]);
@@ -156,7 +163,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <br />
             Decisions made with Fishwife.
           </p>
-          <Link href="/managed-intelligence">
+          <Link href="/managed-intelligence" onNavigate={() => setMenu(false)}>
             How the service works
             <ArrowUpRight size={14} />
           </Link>
@@ -173,6 +180,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {nav.find((n) => n[0] === path)?.[1]}
           </span>
           <details
+            ref={disclosure}
             className="data-disclosure"
             data-testid="illustrative-disclaimer"
           >
@@ -183,7 +191,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="disclosure-content">
               <strong>Illustrative Planning Concept</strong>
               <p>{disclaimer}</p>
-              <Link href="/assumptions">
+              <Link
+                href="/assumptions"
+                onNavigate={() => {
+                  disclosure.current?.removeAttribute("open");
+                }}
+              >
                 Assumptions & Data <ArrowUpRight size={13} />
               </Link>
             </div>
