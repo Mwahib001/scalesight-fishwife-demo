@@ -7,11 +7,11 @@
     "build": "pnpm test && next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsc -p tsconfig.tests.json && node .test-build/tests/naturana.test.js",
+    "test": "tsc -p tsconfig.tests.json && node .test-build/tests/fishwife.test.js",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "format": "prettier --write src tests README.md playwright.config.ts",
-    "verify:naturana": "pnpm test && pnpm typecheck && pnpm lint && pnpm build && pnpm test:e2e"
+    "verify:fishwife": "pnpm test && pnpm typecheck && pnpm lint && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
     "lucide-react": "^1.45.0",
