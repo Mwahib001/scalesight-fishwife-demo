@@ -2291,3 +2291,25 @@ tbody tr:hover {
 .selectable-row:hover {
   background: var(--paper);
 }
+
+.plot-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-top: 18px;
+}
+.planning-plot {
+  display: block;
+  width: 100%;
+  min-width: 610px;
+  height: auto;
+  font: 10px var(--sans);
+  fill: var(--muted);
+}
+.chart-data > p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.scenario-controls {
+  margin-top: 24px;
+}

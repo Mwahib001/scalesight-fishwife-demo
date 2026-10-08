@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { number, usdPerTin } from "../engine/formatters";
 import {
   ArrowRight,
   Check,
@@ -337,8 +338,9 @@ export function Assumptions() {
               <p>{copy}</p>
               {title === "SYNTHETIC DEMO INPUT" && (
                 <p style={{ marginTop: 12 }}>
-                  Unspecified inputs, including landed costs and MOQs, stay
-                  null. Listed categories do not imply every value is supplied.
+                  Fixture v1.1 supplies illustrative histories, channel shares,
+                  landed costs, MOQs and recovery rules. These values are not
+                  researched Fishwife actuals.
                 </p>
               )}
             </div>
@@ -369,33 +371,32 @@ export function Assumptions() {
       </section>
       <section className="panel confirmation-panel" id="confirmation">
         <SectionHeading
-          title="Source inputs still awaiting confirmation"
-          description="Canonical v1 is preserved. Exact calculated interactions wait for source confirmation."
+          title="Approved demo assumptions and remaining source gaps"
+          description="User-supplied synthetic fixture v1.1 completes demand modeling, FBJ recovery and Gold Label scenarios."
         />
         <ul>
           <li>
-            <strong>Q2:</strong> Separate allocation and Starter Pack snapshots;
-            release of constrained trout.
+            <strong>Resolved Q3 / Q5 / Q7:</strong> 13-week histories for 12
+            SKUs, channel mixes, confidence, costs/MOQs, FBJ receipts and promo
+            reduction, and three Gold Label presets with explicit response
+            thresholds.
           </li>
           <li>
-            <strong>Q3:</strong> FBJ receipt ordering, early / full receipt
-            dates and protected-account quantities.
+            <strong>Resolved Q2 / Q4:</strong> Separate allocation/bundle
+            snapshots and dated mussel resequencing. Exact discretionary trout
+            displacement and bundle release quantities remain unspecified.
           </li>
           <li>
-            <strong>Q4:</strong> Early Basil Pesto, remainder and displaced
-            Sweet Pepper receipt dates.
+            <strong>Remaining Q6 / Q9 / Q10:</strong> Production/ready/transit
+            stages, weekly-copy approval and exact supplier/freight/cannery
+            cutoffs.
           </li>
           <li>
-            <strong>Q5:</strong> Landed costs, MOQ, threshold, protected
-            baseline, promo reduction, displacement priority and preset values.
-          </li>
-          <li>
-            <strong>Q6 / Q7:</strong> PO stage dates, channel observations and
-            missing weekly history.
-          </li>
-          <li>
-            <strong>Q9 / Q10:</strong> Seven draft observations, supplier /
-            freight / cannery deadlines.
+            <strong>Model conventions:</strong> Receipts precede demand;
+            channels reconcile by assigning rounding residual to the largest
+            share. Zero-share channels show no modeled observations. Scenario
+            recovery is scheduled no later than the original receipt date, as
+            disclosed on the scenario page.
           </li>
         </ul>
         <p className="small-copy">
@@ -427,9 +428,9 @@ export function Assumptions() {
               "§7 / §9 · current-plan",
             ],
             [
-              "Spanish Lemon history",
+              "12 SKU histories / channel shares / economics",
               "SYNTHETIC DEMO INPUT",
-              "§11 · spanish-lemon-history",
+              "Approved synthetic supplement v1.1",
             ],
             [
               "Trout reservations",
@@ -452,6 +453,22 @@ export function Assumptions() {
               "§11–15 · reviewed narratives",
             ],
           ]}
+        />
+      </section>
+      <section className="panel confirmation-panel">
+        <SectionHeading
+          title="Synthetic landed costs and minimum orders"
+          description="Approved illustrative economics; not Fishwife actuals."
+        />
+        <DataTable
+          caption="Synthetic SKU economics"
+          headers={["SKU", "Cost / tin · USD", "MOQ · tins"]}
+          numeric={[1, 2]}
+          rows={fixture.skus.map((s) => [
+            s.short,
+            usdPerTin(s.unitCost),
+            number(s.moq),
+          ])}
         />
       </section>
       <section className="panel confirmation-panel">

@@ -1,148 +1,128 @@
-import { demandChart, lemonLearning, skuById } from "../engine/fishwife";
+import { useId } from "react";
+import { demandChart, demandContext } from "../engine/fishwife";
 import { number, percent } from "../engine/formatters";
-export function DemandChart({ learning = false }: { learning?: boolean }) {
-  const rows = demandChart();
-  const x = (i: number) => 55 + i * 52;
-  const y = (v: number) => 240 - (v / 7000) * 175;
-  const segments = (key: "baseline" | "actual" | "forward") => {
-    const paths: string[] = [];
-    let path = "";
-    rows.forEach((r, i) => {
-      const v = r[key];
-      if (v === null) {
-        if (path) paths.push(path);
-        path = "";
-      } else path += `${path ? " L" : "M"}${x(i)} ${y(v)}`;
-    });
-    if (path) paths.push(path);
-    return paths;
-  };
+import { DataTable } from "./ui";
+export function DemandChart({
+  learning = false,
+  sku = "TUN-SL",
+  channel = "ALL",
+}: {
+  learning?: boolean;
+  sku?: string;
+  channel?: string;
+}) {
+  const id = useId();
+  const rows = demandChart(sku, channel);
+  const context = demandContext(sku, channel);
+  const max =
+    Math.ceil(
+      Math.max(
+        ...rows.flatMap((r) => [r.baseline, r.actual ?? 0, r.forward ?? 0]),
+      ) / 500,
+    ) * 500 || 500;
+  const x = (i: number) => 62 + i * 41;
+  const y = (value: number) => 247 - (value / max) * 180;
+  const path = (key: "baseline" | "actual" | "forward") =>
+    rows.reduce(
+      (text, row, i) =>
+        row[key] === null
+          ? text
+          : `${text} ${i === 0 || rows[i - 1][key] === null ? "M" : "L"}${x(i)} ${y(row[key]!)}`,
+      "",
+    );
   return (
     <div className="chart-frame">
-      <svg
-        className="chart-svg"
-        viewBox="0 0 735 310"
-        role="img"
-        aria-labelledby={
-          learning ? "learning-chart-title" : "demand-chart-title"
-        }
+      <div
+        className="plot-scroll"
+        role="region"
+        aria-label={`${context.product.short} demand chart`}
+        tabIndex={0}
       >
-        <title id={learning ? "learning-chart-title" : "demand-chart-title"}>
-          Spanish Lemon demand in tins per week. Baseline 4,300, current 5,600,
-          recent four-week average 5,500. Missing weeks are not observations.
-        </title>
-        {learning && (
-          <>
-            <rect x="30" y="25" width="72" height="225" fill="#eeebde" />
-            <rect x="102" y="25" width="133" height="225" fill="#f0e6bf" />
-            <rect x="235" y="25" width="453" height="225" fill="#e9eddf" />
-            <text x="36" y="40" style={{ fontSize: 8 }}>
-              BEFORE EVENT
-            </text>
-            <text x="109" y="40" style={{ fontSize: 8 }}>
-              COLLABORATION
-            </text>
-            <text x="248" y="40" style={{ fontSize: 8 }}>
-              AFTER EVENT
-            </text>
-          </>
-        )}
-        {[0, 2000, 4000, 6000].map((v) => (
-          <g key={v}>
-            <line
-              x1="55"
-              x2="683"
-              y1={y(v)}
-              y2={y(v)}
-              stroke="#cecbbc"
-              strokeWidth="1"
-            />
-            <text x="40" y={y(v) + 4} textAnchor="end">
-              {v === 0 ? "0" : `${v / 1000}K`}
-            </text>
-          </g>
-        ))}
-        <text x="55" y="18" style={{ fontSize: 9 }}>
-          TINS / WEEK
-        </text>
-        {!learning && (
-          <>
-            <rect x="98" y="25" width="136" height="217" fill="#f0e6bf" />
-            <line
-              x1="109"
-              x2="109"
-              y1="31"
-              y2="243"
-              stroke="#887230"
-              strokeDasharray="3 4"
-            />
-            <text x="113" y="42" style={{ fontSize: 9, fill: "#66501b" }}>
-              Sweetgreen collaboration
-            </text>
-            <text x="113" y="56" style={{ fontSize: 8, fill: "#66501b" }}>
-              11–24 Aug · public event
-            </text>
-          </>
-        )}
-        {(["baseline", "actual", "forward"] as const).map((key) =>
-          segments(key).map((d, i) => (
+        <svg
+          className="planning-plot"
+          viewBox="0 0 735 310"
+          role="img"
+          aria-labelledby={id}
+        >
+          <title
+            id={id}
+          >{`${context.product.short} demand · ${channel}. 13 weeks of illustrative history, followed by 3 forward planning weeks. Current ${number(context.current)}, baseline ${number(context.baseline)} tins/week.`}</title>
+          <text x="62" y="22">
+            TINS / WEEK ·{" "}
+            {learning ? "EVENT-AWARE LEARNING" : "ILLUSTRATIVE HISTORY"}
+          </text>
+          {sku === "TUN-SL" && (
+            <g>
+              <rect
+                x={x(4)}
+                y="38"
+                width={x(6) - x(4)}
+                height="209"
+                fill="#f0e6bf"
+              />
+              <text x={x(4) + 4} y="51" fontSize="10">
+                Sweetgreen
+              </text>
+              <text x={x(4) + 4} y="64" fontSize="10">
+                11–24 Aug
+              </text>
+            </g>
+          )}
+          {[0, 0.25, 0.5, 0.75, 1].map((t) => (
+            <g key={t}>
+              <line
+                x1="62"
+                x2="690"
+                y1={y(max * t)}
+                y2={y(max * t)}
+                stroke="#d4d0bf"
+              />
+              <text x="52" y={y(max * t) + 4} textAnchor="end">
+                {number(max * t)}
+              </text>
+            </g>
+          ))}
+          <line
+            x1={x(12) + 20}
+            x2={x(12) + 20}
+            y1="38"
+            y2="250"
+            stroke="#263fc1"
+            strokeDasharray="3 4"
+          />
+          <text x={x(13)} y="51" fill="#263fc1">
+            FORWARD
+          </text>
+          {(["baseline", "actual", "forward"] as const).map((key) => (
             <path
-              key={key + i}
-              d={d}
+              key={key}
+              d={path(key)}
               fill="none"
               stroke={
-                key === "baseline"
-                  ? "#65665b"
-                  : key === "actual"
-                    ? "#af3529"
-                    : "#263fc1"
+                key === "actual"
+                  ? "#af3529"
+                  : key === "forward"
+                    ? "#263fc1"
+                    : "#65665b"
               }
-              strokeWidth={key === "baseline" ? 1.5 : 2.8}
-              strokeDasharray={
-                key === "forward"
-                  ? "6 4"
-                  : key === "baseline"
-                    ? "3 4"
-                    : undefined
-              }
+              strokeWidth={key === "baseline" ? 1.5 : 2.5}
+              strokeDasharray={key === "actual" ? undefined : "5 4"}
             />
-          )),
-        )}
-        {rows.map((r, i) => (
-          <g key={r.week}>
-            {r.actual !== null && (
-              <circle cx={x(i)} cy={y(r.actual)} r="3.6" fill="#af3529" />
-            )}
-            <text x={x(i)} y="263" textAnchor="middle" style={{ fontSize: 9 }}>
-              {r.label}
-            </text>
-            {r.actual === null && (
-              <text
-                x={x(i)}
-                y="280"
-                textAnchor="middle"
-                style={{ fontSize: 8 }}
-              >
-                no actual
+          ))}
+          {rows.map((row, i) => (
+            <g key={row.week}>
+              {row.actual !== null && (
+                <circle cx={x(i)} cy={y(row.actual)} r="3" fill="#af3529">
+                  <title>{`${row.label}: ${number(row.actual)} tins`}</title>
+                </circle>
+              )}
+              <text x={x(i)} y="270" textAnchor="middle" fontSize="9">
+                {row.label}
               </text>
-            )}
-          </g>
-        ))}
-        <line
-          x1="544"
-          x2="544"
-          y1="65"
-          y2="242"
-          stroke="#263fc1"
-          strokeDasharray="2 5"
-        />
-        <text x="555" y="76" style={{ fill: "#263fc1", fontSize: 9 }}>
-          FORWARD ASSUMPTION
-        </text>
-        <text x="555" y="90" style={{ fontSize: 8 }}>
-          Current case · 5,500 tins/week
-        </text>
-      </svg>
+            </g>
+          ))}
+        </svg>
+      </div>
       <div className="chart-legend">
         <span>
           <i className="legend-line plan" />
@@ -150,64 +130,37 @@ export function DemandChart({ learning = false }: { learning?: boolean }) {
         </span>
         <span>
           <i className="legend-line actual" />
-          Actual / current signal
+          Synthetic demand history
         </span>
         <span>
           <i className="legend-line forward" />
-          Current forward assumption
+          Forward assumption
         </span>
       </div>
       <p className="chart-summary">
-        Synthetic observations: {number(skuById("TUN-SL").baseline)} baseline →{" "}
-        {number(skuById("TUN-SL").current)} current tins/week. Post-event
-        persistence {percent(lemonLearning().uplift)}. Forward line is the
-        supplied current-case planning assumption; missing actuals remain
-        unobserved.
+        {context.product.short} · {channel}: {number(context.current)} current
+        tins/week; {percent(context.variance)} vs baseline. Recent four-week
+        uplift {percent(context.uplift)}. Future periods are assumptions, not
+        observations.
       </p>
       <details className="chart-data">
-        <summary>View weekly observations and source gaps</summary>
-        <div
-          className="table-scroll"
-          role="region"
-          aria-label="Weekly observations"
-          tabIndex={0}
-        >
-          <table>
-            <caption className="sr-only">
-              Spanish Lemon weekly chart data
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Week</th>
-                <th className="numeric" scope="col">
-                  Previous plan
-                </th>
-                <th className="numeric" scope="col">
-                  Observed tins
-                </th>
-                <th className="numeric" scope="col">
-                  Forward assumption
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.week}>
-                  <th scope="row">{r.label}</th>
-                  <td className="numeric">{number(r.baseline)}</td>
-                  <td className="numeric">
-                    {r.actual === null
-                      ? "no supplied observation"
-                      : number(r.actual)}
-                  </td>
-                  <td className="numeric">
-                    {r.forward === null ? "—" : number(r.forward)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <summary>View weekly observations and assumptions</summary>
+        <DataTable
+          caption="Weekly observations"
+          headers={[
+            "Week",
+            "Baseline · tins",
+            "Modeled demand · tins",
+            "Forward · tins",
+          ]}
+          numeric={[1, 2, 3]}
+          rows={rows.map((r) => [
+            r.label,
+            number(r.baseline),
+            r.actual === null ? "Forward period" : number(r.actual),
+            number(r.forward),
+          ])}
+        />
       </details>
     </div>
   );

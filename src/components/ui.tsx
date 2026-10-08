@@ -182,7 +182,12 @@ export function Metric({
       <span>{label}</span>
       <strong>
         {value}
-        {unit && <small>{unit}</small>}
+        {unit && (
+          <>
+            {" "}
+            <small>{unit}</small>
+          </>
+        )}
       </strong>
     </div>
   );

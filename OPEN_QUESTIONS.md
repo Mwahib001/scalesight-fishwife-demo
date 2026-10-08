@@ -1,20 +1,35 @@
-# Source inputs needed from Arman
+# Source status after synthetic fixture v1.1
 
-The demo implements the supplied canonical inputs. The following interactions explicitly show missing inputs. Resolve these before presenting exact calculated scenarios. Source: technical specification, Implementation Questions (page 83).
+The user supplied and authorized [Canonical Synthetic Fixture v1.1](docs/SYNTHETIC_FIXTURE_V1_1.md) on 8 October 2026. Its figures are synthetic demo inputs, not public facts or Fishwife actuals. It supplements the original PDF without altering original SKU positions or PO IDs.
 
-| Question  | Blocked interaction                                                             | Exact confirmation needed                                                                                                                                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q2        | Reconcile allocation and bundle examples                                        | Confirm a separate bundle inventory snapshot with 400 free trout tins, or specify changed reservations. Allocation reserves all 4,200 tins; these contexts are currently separate.                                                                                                                            |
-| Q3        | FBJ exact trajectories, receipt markers, protected units and remaining exposure | Receipt-before-demand convention; early 4,000 receipt date; full 6,000 expedite date; standard 2,000 date; updated full-receipt date. Confirm elapsed weeks versus week buckets. The canonical 6,200 is service exposure, excluding safety reserve.                                                           |
-| Q4        | Mussel receipt / displacement trajectories                                      | Date for early 8,000 Basil Pesto; date for remaining 4,000; date for displaced 8,000 Sweet Pepper. No transfer of finished goods between flavors is assumed.                                                                                                                                                  |
-| Q5        | Scenario outputs, preset values and recommendation thresholds                   | Landed cost per SKU, MOQ, recovery-cost threshold, protected-demand baseline, FBJ DTC promo reduction, allocation displacement priority and discretionary bundle quantity, amount of trout released in the bundle toggle, exact values for all three scenario presets and retailer pull-forward observations. |
-| Q6        | Supply-stage dates and aggregate incoming detail                                | Production, ready and transit dates for seven POs; confirm Gold Label incoming detail. TUN-SG, SAR-HP and MAC-CHILI stay aggregate records without invented PO IDs.                                                                                                                                           |
-| Q7        | Channel chart, confidence and history gaps                                      | Approved SKU × channel weekly observations for six channels; remaining dated Spanish Lemon observations in the 13-week view. No equal channel splits are assumed.                                                                                                                                             |
-| Q8        | Action vocabulary                                                               | Preserve page labels REVIEW BUY, INTERVENE, PROTECT COMPONENT; internal enums normalize to BUY, SPLIT, REALLOCATE. No execution is attached.                                                                                                                                                                  |
-| Q9        | Weekly change copy and watch example                                            | Approve the seven fixture-supported draft observations; provide previous-review snapshot to substantiate temporal changes. Approve a separate one-week pull-forward fixture for the WATCH example; currently the supplied 17 Aug collaboration spike is used without an invented SKU history.                 |
-| Q9 assets | Exact brand typography                                                          | Supply a licensed Recoleta webfont and authorized Fishwife wordmark if required. Live theme inspection confirms Recoleta and Albert Sans. The local demo uses an open Petrona serif fallback and Albert Sans. Theme colors are sampled/interpretive, not official brand hex standards.                        |
-| Q10       | Exact intervention deadlines and supply-gap timing                              | Supplier cutoff, freight cutoff and cannery lock dates; readiness information; agreed receipt convention for safety breach / stockout dates.                                                                                                                                                                  |
+## Resolved for the three interactive pages
 
-Q1 passes: baseline 41,400, current 45,100, aggregate +8.9%.
+| Page            | Supplied and implemented                                                                                                                                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Demand          | All 12 thirteen-week histories, six channel shares per SKU, integer rounding with residual assigned to the largest share, and confidence classifications. Zero-share channels deliberately display “No modeled observations.”                                            |
+| PO Intervention | Receipt-before-demand convention; 29 Oct early receipt and 12 Nov standard/delayed receipt; 1,900 protected tins/week; 2,400-tin promotional reduction. Four outcomes calculate to 6,200 / 200 / 2,200 / 0 exposed tins and $0 / $8,400 / $5,600 / $5,600 recovery cost. |
+| Scenario        | Gold Label opening position, receipt, costs/MOQ, protected demand, split/full recovery quantities and premiums, decision thresholds, and three exact presets. Risk, cash, response and charts recalculate from valid inputs.                                             |
+| Supply context  | Basil Pesto: 8,000 on 22 Oct, 4,000 on 12 Nov. Sweet Pepper: 4,000 on 26 Nov, 8,000 on 17 Dec. Original PO records remain separate from proposed recovery schedules.                                                                                                     |
 
-Cin7 logo supplied in `public/logos/cin7logo.png`. Product variety-box image supplied in `public/brand/productimage.webp`; it is used as a variety pack, not mislabeled as a single SKU. Additional product photographs are downloaded from the official Fishwife storefront with their source recorded in `ASSET_SOURCES.md`.
+The supplement also supplies landed costs and MOQs for all 12 SKUs and confirms that allocation and bundle examples use separate snapshots.
+
+## Explicit implementation conventions for custom scenarios
+
+- Recovery arrives one period before the standard receipt, capped at the original 5 Nov receipt date. This reproduces both supplied recovery presets and extends them to custom delays.
+- An otherwise qualifying split above the $4,000 premium threshold returns INVESTIGATE; the supplied EXPEDITE rule takes precedence when its exposure criteria apply.
+- Demand-change overrides scale the retailer pull-forward shape. Beyond its six supplied weeks, demand returns to the scaled baseline.
+- Pre-receipt risk metrics stop before the standard receipt; the final chart point shows the opening receipt without consuming an additional demand period. Unmet demand is tracked separately from nonnegative physical stock.
+- Cash is incremental recovery premium. Existing PO value is shown separately and is not charged again.
+- Tied largest channel shares use the first channel in the supplied channel order for rounding residuals.
+
+These extensions are documented demo conventions, not additional supplied Fishwife policies.
+
+## Still unspecified outside those three pages
+
+- **Allocation/bundles:** discretionary trout quantity, displacement priority and amount released when account protection is turned off. The supplement confirms separate snapshots but does not supply these quantities; toggle outcomes remain qualitative.
+- **Supply stages:** production, ready and transit dates; additional PO IDs for aggregate incoming records. No IDs or stage dates are invented.
+- **Review copy:** previous-review snapshot and approval of the seven draft weekly observations.
+- **Execution cutoffs:** exact supplier, freight and cannery cutoff timestamps.
+- **Optional brand assets:** licensed Recoleta webfont and authorized Fishwife wordmark. The existing open serif fallback and supplied logos remain in use.
+
+These gaps do not prevent the completed demand, FBJ recovery or Gold Label scenario calculations. The demo does not execute transactions or connect to live Fishwife systems.

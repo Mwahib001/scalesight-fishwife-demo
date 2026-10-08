@@ -52,6 +52,7 @@ export type Sku = Lineage & {
   identity: Lineage;
   unitCost: number | null;
   moq: number | null;
+  economicsSource: Lineage;
 };
 const rows: [
   string,
@@ -275,6 +276,91 @@ const rows: [
     false,
   ],
 ];
+// User-approved illustrative supplement. No values claim to be Fishwife actuals.
+const supplementSource: Lineage = {
+  classification: "SYNTHETIC DEMO INPUT",
+  source:
+    "User-supplied Canonical Synthetic Fixture v1.1 · docs/SYNTHETIC_FIXTURE_V1_1.md",
+  context: "illustrative-v1.1",
+};
+const demandHistory: Record<string, number[]> = {
+  "TUN-SL": [
+    4200, 4300, 4350, 4350, 5900, 6400, 5200, 4800, 5100, 5250, 5450, 5700,
+    5600,
+  ],
+  "TUN-SP": [
+    6050, 6100, 6200, 6150, 6250, 6300, 6350, 6250, 6400, 6425, 6475, 6525,
+    6500,
+  ],
+  "TUN-OO": [
+    5300, 5250, 5200, 5225, 5150, 5100, 5075, 5050, 5000, 4950, 5000, 4975,
+    5000,
+  ],
+  "TUN-SG": [
+    3000, 3050, 3100, 3150, 3200, 3250, 3275, 3300, 3350, 3400, 3450, 3475,
+    3500,
+  ],
+  "SAL-GL": [
+    3250, 3300, 3325, 3350, 3375, 3400, 3450, 3475, 3500, 3525, 3550, 3575,
+    3600,
+  ],
+  "SAL-FBJ": [
+    2600, 2650, 2700, 2750, 2800, 2850, 2900, 2950, 2925, 2975, 3025, 3050,
+    3000,
+  ],
+  "TRT-ORIG": [
+    1900, 1900, 1850, 1800, 1750, 1700, 1650, 1600, 1550, 1500, 1600, 1650,
+    1700,
+  ],
+  "SAR-PL": [
+    4100, 4150, 4200, 4225, 4250, 4300, 4325, 4350, 4400, 4425, 4450, 4475,
+    4500,
+  ],
+  "SAR-HP": [
+    2400, 2450, 2500, 2525, 2550, 2600, 2625, 2675, 2700, 2750, 2775, 2825,
+    2800,
+  ],
+  "MUS-BP": [
+    2300, 2350, 2400, 2425, 2450, 2500, 2550, 2600, 2700, 2800, 2900, 3050,
+    3000,
+  ],
+  "MUS-SPG": [
+    2650, 2675, 2700, 2725, 2680, 2710, 2740, 2760, 2780, 2790, 2810, 2820,
+    2800,
+  ],
+  "MAC-CHILI": [
+    2850, 2875, 2900, 2925, 2950, 2975, 3000, 3025, 3050, 3075, 3100, 3125,
+    3100,
+  ],
+};
+const channelShares: Record<string, number[]> = {
+  "TUN-SL": [30, 40, 0, 0, 10, 20],
+  "TUN-SP": [15, 15, 20, 25, 5, 20],
+  "TUN-OO": [20, 25, 25, 0, 10, 20],
+  "TUN-SG": [45, 0, 0, 0, 20, 35],
+  "SAL-GL": [45, 0, 0, 0, 20, 35],
+  "SAL-FBJ": [20, 25, 0, 0, 15, 40],
+  "TRT-ORIG": [15, 25, 0, 30, 5, 25],
+  "SAR-PL": [15, 20, 20, 0, 10, 35],
+  "SAR-HP": [40, 0, 0, 0, 20, 40],
+  "MUS-BP": [40, 0, 0, 0, 20, 40],
+  "MUS-SPG": [40, 0, 0, 0, 20, 40],
+  "MAC-CHILI": [15, 20, 20, 0, 10, 35],
+};
+const economics: Record<string, number[]> = {
+  "TUN-SL": [3.4, 18000],
+  "TUN-SP": [3.3, 18000],
+  "TUN-OO": [3.2, 18000],
+  "TUN-SG": [3.6, 15000],
+  "SAL-GL": [4.8, 9000],
+  "SAL-FBJ": [5.4, 6000],
+  "TRT-ORIG": [4.5, 12000],
+  "SAR-PL": [3.1, 15000],
+  "SAR-HP": [3.2, 12000],
+  "MUS-BP": [3.6, 12000],
+  "MUS-SPG": [3.5, 12000],
+  "MAC-CHILI": [3.7, 10000],
+};
 const skus: Sku[] = rows.map(
   ([
     id,
@@ -310,8 +396,9 @@ const skus: Sku[] = rows.map(
     color,
     image: hasImage ? `/brand/products/${id}.webp` : null,
     identity: publicFact("https://eatfishwife.com/collections/tinned-fish"),
-    unitCost: null,
-    moq: null,
+    unitCost: economics[id][0],
+    moq: economics[id][1],
+    economicsSource: supplementSource,
   }),
 );
 export type PO = Lineage & {
@@ -455,7 +542,7 @@ const decisions: Decision[] = [
     decision:
       "Approve the recovery option and incremental freight before the supplier cut-off.",
     matters:
-      "Compare the incremental cost of each response against service protection; exact receipt dates remain unconfirmed.",
+      "Compare the incremental cost of each response against service protection using the approved synthetic v1.1 receipt dates.",
     unchanged:
       "Accepting the delay leaves approximately 6,200 tins exposed before the delayed receipt, excluding safety stock.",
     recommendation:
@@ -492,7 +579,20 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 export const fixture = deepFreeze({
-  version: "fishwife-v1.0",
+  version: "fishwife-v1.1",
+  supplement: supplementSource,
+  modeledDemand: Object.keys(demandHistory).map((sku) => ({
+    ...supplementSource,
+    sku,
+    weekly: demandHistory[sku],
+    shares: channelShares[sku],
+    confidence: (sku === "TRT-ORIG"
+      ? "LOW"
+      : ["TUN-SL", "MUS-BP"].includes(sku)
+        ? "MODERATE"
+        : "HIGH") as Confidence,
+  })),
+  historyStart: "2026-07-13",
   timeline: {
     ...input(6),
     planningDate: "2026-10-08",
@@ -518,7 +618,7 @@ export const fixture = deepFreeze({
   ].map((name) => ({
     ...publicFact("Technical specification §24"),
     name,
-    observations: null,
+    modelingSource: supplementSource,
   })),
   history: history.map(([week, units]) => ({
     ...input(11, "spanish-lemon-history"),
@@ -572,11 +672,13 @@ export const fixture = deepFreeze({
     exposure: 6200,
     earlyQuantity: 4000,
     standardQuantity: 2000,
-    earlyDate: null,
-    expeditedDate: null,
-    receiptConvention: null,
-    promoReduction: null,
-    protectedDemand: null,
+    supplementSource,
+    earlyDate: "2026-10-29",
+    expeditedDate: "2026-10-29",
+    delayedDate: "2026-11-12",
+    receiptConvention: "receipt-before-demand" as const,
+    promoReduction: [0, 0, 200, 1100, 1100],
+    protectedDemand: 1900,
     options: [
       {
         ...input(13, "fbj-accept"),
@@ -596,7 +698,8 @@ export const fixture = deepFreeze({
         effect: "Nearly full protection",
         early: 6000,
         standard: 0,
-        shortage: null,
+        shortage: 200,
+        supplementSource,
       },
       {
         ...input(13, "fbj-split"),
@@ -606,7 +709,8 @@ export const fixture = deepFreeze({
         effect: "Most exposure removed",
         early: 4000,
         standard: 2000,
-        shortage: null,
+        shortage: 2200,
+        supplementSource,
       },
       {
         ...input(13, "fbj-split-promo"),
@@ -616,7 +720,8 @@ export const fixture = deepFreeze({
         effect: "Protected-account gap closed",
         early: 4000,
         standard: 2000,
-        shortage: null,
+        shortage: 0,
+        supplementSource,
       },
     ],
   },
@@ -625,21 +730,39 @@ export const fixture = deepFreeze({
     moved: 8000,
     advanceWeeks: 3,
     cost: 2100,
-    earlyDate: null,
-    remainingDate: null,
-    displacedDate: null,
+    supplementSource,
+    earlyDate: "2026-10-22",
+    remainingDate: "2026-11-12",
+    displacedDate: "2026-12-17",
+    sweetPepperRetainedDate: "2026-11-26",
     addedCapacityCost: null,
   },
   scenario: {
-    ...input(29, "exploratory"),
+    ...supplementSource,
+    sku: "SAL-GL",
+    originalReceipt: "2026-11-05",
+    protectedBaseline: 2500,
+    splitQuantity: 5000,
+    splitPremium: 3600,
+    expeditePremium: 6300,
+    threshold: 4000,
+    exposureThreshold: 4000,
+    pullForward: [5000, 4600, 3000, 1800, 3600, 3600],
     presets: [
-      "Demand holds higher",
-      "Supplier slips",
-      "Retailer pulls demand forward",
-    ].map((label) => ({ ...input(29, "exploratory"), label, values: null })),
-    landedCost: null,
-    threshold: null,
-    protectedBaseline: null,
+      {
+        label: "Demand holds higher",
+        demandChange: 25,
+        delay: 0,
+        response: "SPLIT",
+      },
+      { label: "Supplier slips", demandChange: 0, delay: 2, response: "SPLIT" },
+      {
+        label: "Retailer pulls demand forward",
+        demandChange: 0,
+        delay: 0,
+        response: "WATCH / HOLD",
+      },
+    ],
   },
 });
 export const missing = "Not specified in demo source.";

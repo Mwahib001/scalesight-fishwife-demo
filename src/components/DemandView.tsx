@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { empty, fixture, learningCopy } from "../data/fishwife.v1";
-import { lemonLearning, skuMetrics } from "../engine/fishwife";
+import { fixture, learningCopy } from "../data/fishwife.v1";
+import { demandContext, lemonLearning, skuMetrics } from "../engine/fishwife";
 import { number, percent } from "../engine/formatters";
 import {
   Badge,
@@ -17,9 +17,8 @@ export function DemandView() {
   const [sku, setSku] = useState("TUN-SL");
   const [channel, setChannel] = useState("ALL");
   const m = skuMetrics(sku);
-  const learning = lemonLearning();
-  const hasSeries = sku === "TUN-SL" && channel === "ALL";
-  const aggregate = channel === "ALL";
+  const context = demandContext(sku, channel);
+  const hasSeries = context.modeled;
   return (
     <>
       <PageHeading
@@ -67,17 +66,16 @@ export function DemandView() {
         <section className="panel">
           <div className="panel-title">
             <h2>{m.sku.short}</h2>
-            <span>13-WEEK VIEW · TINS / WEEK</span>
+            <span>13-WEEK HISTORY + 3-WEEK PLAN</span>
           </div>
           {hasSeries ? (
-            <DemandChart />
+            <DemandChart sku={sku} channel={channel} />
           ) : (
             <div className="empty-state">
-              {empty}
+              No modeled observations.
               <p className="chart-summary">
-                {aggregate
-                  ? "Aggregate current and baseline inputs are supplied, but dated weekly observations are absent."
-                  : "Channel-level observations, variance, confidence and interpretation are not supplied."}
+                This channel has a 0% share in the approved illustrative mix. It
+                is not evidence of zero actual Fishwife demand.
               </p>
             </div>
           )}
@@ -87,71 +85,64 @@ export function DemandView() {
           <div className="metric-grid">
             <Metric
               label="Current signal"
-              value={aggregate ? number(m.sku.current) : "—"}
+              value={number(context.current)}
               unit="tins/week"
             />
             <Metric
-              label={sku === "TUN-SL" ? "Pre-event baseline" : "Baseline plan"}
-              value={aggregate ? number(m.sku.baseline) : "—"}
+              label="Baseline plan"
+              value={number(context.baseline)}
               unit="tins/week"
             />
             <Metric
               label="Variance vs baseline"
-              value={aggregate ? percent(m.variance) : "—"}
+              value={percent(context.variance)}
             />
             <Metric
-              label="Post-event persistence"
-              value={hasSeries ? percent(learning.uplift) : "—"}
+              label={
+                sku === "TUN-SL"
+                  ? "Post-event persistence"
+                  : "Recent 4-week uplift"
+              }
+              value={percent(context.uplift)}
             />
             <Metric
               label="Confidence"
-              value={
-                <ConfidenceValue
-                  value={
-                    hasSeries
-                      ? learning.confidence
-                      : sku === "TRT-ORIG" && aggregate
-                        ? "LOW"
-                        : null
-                  }
-                />
-              }
+              value={<ConfidenceValue value={context.confidence} />}
             />
           </div>
-          {hasSeries ? (
-            <>
-              <p className="interpretation-copy">
-                Demand has remained elevated after the collaboration ended. The
-                signal is persistent enough to reserve capacity, but not yet
-                strong enough to treat the entire uplift as permanent demand.
-              </p>
-              <p className="small-copy">
-                {percent(m.variance)} on paper vs {percent(learning.uplift)}{" "}
-                that has actually persisted.
-              </p>
-            </>
-          ) : (
-            <p className="small-copy">
-              {sku === "TRT-ORIG" && aggregate
-                ? "Demand-learning confidence is LOW: constrained availability can censor true demand."
-                : empty}
-            </p>
-          )}
+          <p className="interpretation-copy">
+            {!hasSeries
+              ? "No modeled observations for this channel."
+              : sku === "TUN-SL"
+                ? "Demand remains elevated after the collaboration. Reserve capacity while reviewing the next retailer reorder cycle."
+                : sku === "TRT-ORIG"
+                  ? "Demand-learning confidence is LOW: constrained availability can censor true demand."
+                  : sku === "MUS-BP"
+                    ? "Recent acceleration supports review of existing packing capacity before adding a new commitment."
+                    : "The complete illustrative history shows how demand has evolved against the baseline. Keep the supplied SKU recommendation in view."}
+          </p>
+          <p className="small-copy">
+            {channel === "ALL"
+              ? "All modeled channels combined."
+              : `${context.share}% synthetic channel share; rounded channel quantities reconcile to the total.`}{" "}
+            Channel histories use fixed illustrative shares, not independent
+            retailer observations.
+          </p>
           <div className="recommendation-block">
             <p className="eyebrow">REVIEWED CURRENT-PLAN RECOMMENDATION</p>
             <Badge label={m.sku.label} tone="blue" />
             <p>
-              {hasSeries
+              {sku === "TUN-SL" && hasSeries
                 ? "Reserve the next production slot. Confirm final incremental quantity after the next retailer reorder cycle."
-                : "The supplied SKU recommendation is retained. This selected context has no separately reviewed recommendation."}
+                : "The supplied SKU recommendation is retained; channel selection does not create a new commercial decision."}
             </p>
           </div>
           <Reviewed />
         </aside>
       </div>
       <p className="source-context">
-        Synthetic demo inputs · Technical specification §7 / §11. Channel
-        selections never divide aggregate demand.
+        Synthetic demo inputs · Approved fixture v1.1. Channel shares and
+        history are illustrative, not Fishwife actuals.
       </p>
     </>
   );
@@ -212,9 +203,9 @@ export function ForecastLearning() {
             persistence evidence.
           </p>
           <p className="draft-label">
-            ScaleSight interpretation of supplied history · A separate retailer
-            pull-forward example requires an approved fixture addition (Q5 /
-            Q9).
+            ScaleSight interpretation of supplied history · The Scenario
+            Planning page now includes a separate Gold Label retailer
+            pull-forward example from fixture v1.1.
           </p>
           <p className="small-copy">
             Monitoring next cycle · Review another retailer reorder cycle before

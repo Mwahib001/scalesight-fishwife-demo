@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { type Decision, type PO, fixture } from "../data/fishwife.v1";
-import { skuById } from "../engine/fishwife";
+import { skuById, recoverySchedule } from "../engine/fishwife";
 import { number, date } from "../engine/formatters";
 import { Badge, PlanLink, ProductImage, Reviewed, Stamp } from "./ui";
 export function DecisionDrawer({
@@ -44,7 +44,7 @@ export function DecisionDrawer({
         [
           "EXPOSURE",
           narrative?.unchanged ??
-            "Exact projected position is not specified: stage dates and receipt ordering remain unconfirmed.",
+            "Exact projected position for this commitment is not modeled. Its original arrival is retained; production, readiness and transit stages are not supplied.",
         ],
         [
           "AVAILABLE RESPONSES",
@@ -121,6 +121,19 @@ export function DecisionDrawer({
             </section>
           ))}
         </div>
+        {po && recoverySchedule(po.sku) && (
+          <section className="drawer-section">
+            <h3>PROPOSED RECOVERY RECEIPTS</h3>
+            <p>
+              {recoverySchedule(po.sku)!
+                .map(
+                  (row) => `${number(row.quantity)} tins on ${date(row.date)}`,
+                )
+                .join("; ")}
+              . Synthetic fixture v1.1; original commitment remains read-only.
+            </p>
+          </section>
+        )}
         <div className="drawer-footer">
           <Reviewed />
           {narrative && (

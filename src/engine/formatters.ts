@@ -32,3 +32,13 @@ export const compact = (value: number) =>
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(value);
+
+export const usdPerTin = (value: number | null) =>
+  value === null
+    ? "—"
+    : new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);

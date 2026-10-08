@@ -155,7 +155,7 @@ test("Projection floors physical stock, tracks exposure and avoids double subtra
   assert.equal(e.supplyGap(15000, 7500, 8800), 13700);
   assert.equal(e.shortage(15000, 8800), 6200);
 });
-test("Deterministic confidence and uncalibrated scenario outputs", () => {
+test("Deterministic confidence and current-plan scenario outputs", () => {
   assert.equal(e.confidence(4, true, false), "MODERATE");
   assert.equal(e.confidence(9, false, true), "LOW");
   assert.equal(e.confidence(9, false, false), "HIGH");
@@ -163,7 +163,7 @@ test("Deterministic confidence and uncalibrated scenario outputs", () => {
     e.scenarioOutputs({ ...e.initialScenario(), demandChange: 40 }).response,
     "SPLIT",
   );
-  assert.equal(e.scenarioOutputs(e.initialScenario()).exposure, null);
+  assert.equal(e.scenarioOutputs(e.initialScenario()).exposure, 0);
 });
 test("Bounded inputs reject malformed state; reset clears all overrides", () => {
   for (const v of ["7", "1.5", "NaN", "Infinity", "-1", ""])
@@ -172,14 +172,162 @@ test("Bounded inputs reject malformed state; reset clears all overrides", () => 
   assert.equal(e.validateScenario("demandChange", "-20").value, -20);
   assert.ok(e.validateScenario("premium", "-1").error);
   assert.ok(e.validateScenario("protectedDemand", "2.5").error);
-  assert.equal(e.initialScenario().protectedDemand, null);
+  assert.equal(e.initialScenario().protectedDemand, 2500);
 });
-test("13-week chart leaves observation gaps null; no channel splits or invented POs", () => {
-  assert.equal(e.demandChart().length, 13);
-  assert.equal(e.demandChart()[0].actual, null);
-  assert.ok(fixture.channels.every((c) => c.observations === null));
+test("Complete histories conserve integer units across every modeled channel", () => {
+  assert.equal(e.demandChart().filter((r) => r.actual !== null).length, 13);
+  assert.equal(e.demandChart()[0].week, "2026-07-13");
+  assert.equal(e.demandChart()[12].week, "2026-10-05");
+  for (const model of fixture.modeledDemand) {
+    assert.equal(model.weekly.length, 13);
+    assert.equal(
+      model.shares.reduce((a, b) => a + b, 0),
+      100,
+    );
+    assert.equal(model.weekly[12], e.skuById(model.sku).current);
+    for (let week = 0; week < 13; week++) {
+      const values = e.channelUnits(model.weekly[week], model.shares);
+      assert.ok(values.every(Number.isInteger));
+      assert.equal(
+        values.reduce((a, b) => a + b, 0),
+        model.weekly[week],
+      );
+    }
+    for (let channel = 1; channel < fixture.channels.length; channel++) {
+      const context = e.demandContext(
+        model.sku,
+        fixture.channels[channel].name,
+      );
+      assert.equal(context.modeled, model.shares[channel - 1] > 0);
+      assert.equal(
+        context.confidence,
+        context.modeled ? model.confidence : null,
+      );
+      if (!context.modeled) {
+        assert.equal(context.current, null);
+        assert.deepEqual(
+          e.demandChart(model.sku, fixture.channels[channel].name),
+          [],
+        );
+      }
+    }
+  }
+  assert.equal(e.mean(fixture.modeledDemand[0].weekly.slice(0, 4)), 4300);
+  assert.deepEqual(
+    fixture.modeledDemand[0].weekly.slice(4),
+    fixture.history.map((h) => h.units),
+  );
   for (const id of ["TUN-SG", "SAR-HP", "MAC-CHILI"])
     assert.ok(!fixture.pos.some((p) => p.sku === id));
+});
+test("FBJ chronology reproduces every supplied exposure and protected-unit result", () => {
+  for (const [id, exposure, protectedUnits, cost] of [
+    ["accept", 6200, 0, 0],
+    ["expedite", 200, 6000, 8400],
+    ["split", 2200, 4000, 5600],
+    ["split-promo", 0, 6200, 5600],
+  ] as const) {
+    const result = e.fbjComparison(id);
+    assert.equal(result.exposure, exposure);
+    assert.equal(result.protected, protectedUnits);
+    assert.equal(result.cost, cost);
+    assert.equal(
+      result.rows.reduce((sum, row) => sum + row.receipt, 0),
+      6000,
+    );
+    assert.equal(result.rows[3].date, "2026-10-29");
+    assert.equal(result.rows[5].date, "2026-11-12");
+    assert.ok(result.rows.every((row) => row.physical >= 0));
+  }
+  assert.equal(e.fbjComparison("split-promo").promoRemoved, 2400);
+  assert.equal(e.fbjComparison("split-promo").remaining, 200);
+  assert.equal(e.fbjComparison("split-promo").stockout, 3);
+});
+test("Gold Label presets reproduce supplied risks, receipts, cash and responses", () => {
+  const base = e.scenarioOutputs(e.initialScenario());
+  assert.equal(base.response, "HOLD");
+  assert.equal(base.cash, 0);
+  assert.equal(base.preReceipt, 5600);
+  const higher = e.scenarioOutputs(e.scenarioPreset(0));
+  assert.equal(higher.demand, 4500);
+  assert.equal(higher.safety, 11250);
+  assert.equal(higher.preReceipt, 2000);
+  assert.equal(higher.safetyBreach, 2);
+  assert.equal(higher.stockout, null);
+  assert.equal(higher.exposure, 0);
+  assert.equal(higher.response, "SPLIT");
+  assert.equal(higher.cash, 3600);
+  assert.equal(higher.earlyDate, "2026-10-29");
+  assert.equal(higher.receiptDate, "2026-11-05");
+  const delay = e.scenarioOutputs(e.scenarioPreset(1));
+  assert.equal(delay.exposure, 1600);
+  assert.equal(delay.stockout, 6);
+  assert.equal(delay.safetyBreach, 4);
+  assert.equal(delay.earlyDate, "2026-11-05");
+  assert.equal(delay.receiptDate, "2026-11-19");
+  assert.equal(delay.response, "SPLIT");
+  assert.equal(delay.remainingExposure, 0);
+  assert.equal(delay.cash, 3600);
+  const pull = e.scenarioOutputs(e.scenarioPreset(2));
+  assert.equal(pull.response, "WATCH / HOLD");
+  assert.equal(pull.cash, 0);
+  assert.equal(pull.exposure, 0);
+  assert.equal(pull.safetyBreach, 3);
+  assert.equal(pull.stockout, null);
+  assert.deepEqual(
+    pull.base.slice(0, 4).map((r) => r.physical),
+    [15000, 10400, 7400, 5600],
+  );
+  assert.equal(
+    fixture.scenario.pullForward.reduce((a, b) => a + b, 0),
+    6 * 3600,
+  );
+});
+test("Scenario thresholds, overrides and long-delay exposure stay coherent", () => {
+  const higher = e.scenarioPreset(0);
+  assert.equal(
+    e.scenarioOutputs({ ...higher, premium: 4000 }).response,
+    "SPLIT",
+  );
+  assert.equal(
+    e.scenarioOutputs({ ...higher, premium: 4001 }).response,
+    "INVESTIGATE",
+  );
+  assert.equal(
+    e.scenarioOutputs({ ...higher, protectedDemand: 2000 }).response,
+    "HOLD",
+  );
+  assert.equal(
+    e.scenarioOutputs({ ...higher, protectedDemand: 2001 }).response,
+    "SPLIT",
+  );
+  const extreme = e.scenarioOutputs({ ...higher, delay: 6, demandChange: 40 });
+  assert.equal(extreme.response, "EXPEDITE");
+  assert.equal(extreme.cash, 6300);
+  assert.ok(extreme.remainingExposure > 0);
+  assert.equal(
+    extreme.selected.reduce((sum, row) => sum + row.receipt, 0),
+    9000,
+  );
+  for (const value of ["", "Infinity", "NaN", "-1", "1e100"])
+    assert.ok(e.validateScenario("premium", value).error);
+});
+test("Supplement costs, MOQ and mussel receipt schedules are sourced and immutable", () => {
+  assert.equal(fixture.version, "fishwife-v1.1");
+  for (const sku of fixture.skus) {
+    assert.ok(sku.unitCost! > 0 && sku.moq! > 0);
+    assert.equal(sku.economicsSource.classification, "SYNTHETIC DEMO INPUT");
+  }
+  assert.equal(e.skuById("SAL-GL").unitCost, 4.8);
+  assert.deepEqual(e.recoverySchedule("MUS-BP"), [
+    { date: "2026-10-22", quantity: 8000 },
+    { date: "2026-11-12", quantity: 4000 },
+  ]);
+  assert.deepEqual(e.recoverySchedule("MUS-SPG"), [
+    { date: "2026-11-26", quantity: 4000 },
+    { date: "2026-12-17", quantity: 8000 },
+  ]);
+  assert.ok(Object.isFrozen(fixture.modeledDemand[0].weekly));
 });
 test("Late receipts cannot hide an earlier stockout or safety breach", () => {
   const late = e.projectedInventory(

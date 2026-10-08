@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { fixture } from "../data/fishwife.v1";
-import { costDifference, skuMetrics } from "../engine/fishwife";
-import { number, usd } from "../engine/formatters";
-import { AnalystNote, Badge, Metric, Missing, PageHeading } from "./ui";
+import { costDifference, skuMetrics, fbjComparison } from "../engine/fishwife";
+import { number, usd, date, usdPerTin } from "../engine/formatters";
+import { AnalystNote, Badge, Metric, PageHeading } from "./ui";
+import { InventoryChart } from "./InventoryChart";
 export function POIntervention() {
   const [option, setOption] = useState("split-promo");
   const selected = fixture.fbj.options.find((o) => o.id === option)!;
+  const comparison = fbjComparison(option);
   const s = skuMetrics("SAL-FBJ");
   return (
     <>
@@ -71,56 +73,51 @@ export function POIntervention() {
             <h2>{selected.label}</h2>
             <Badge label="COMPARISON SELECTED" tone="yellow" />
           </div>
-          <div className="trajectory-pending">
-            <div className="safety-line">
-              Safety reserve · {number(s.safety)} tins (derived)
-            </div>
-            <strong>
-              Exact inventory trajectory is awaiting receipt inputs.
-            </strong>
-            <p>
-              {number(selected.early)} tins on early freight ·{" "}
-              {number(selected.standard)} on standard freight. Receipt dates:
-              Not specified.
-            </p>
-            <p>
-              Exact service gap:{" "}
-              {selected.shortage === null
-                ? "Not specified"
-                : `${number(selected.shortage)} tins (supplied narrative)`}
-            </p>
-          </div>
-          <div className="chart-legend">
-            <span>
-              <i className="legend-line plan" />
-              Inventory trajectory · pending
-            </span>
-            <span>
-              <i className="legend-line actual" />
-              Service gap · pending
-            </span>
-            <span>
-              <i className="legend-line forward" />
-              Incoming receipt · unconfirmed
-            </span>
-          </div>
+          <InventoryChart
+            rows={comparison.rows}
+            opening={s.sku.onHand}
+            safety={comparison.safety}
+            title="FBJ recovery inventory trajectory"
+          />
           <div className="metric-grid">
             <Metric
+              label="Service exposure"
+              value={number(comparison.exposure)}
+              unit="tins"
+            />
+            <Metric
+              label="Service units protected"
+              value={number(comparison.protected)}
+              unit="vs accept delay"
+            />
+            <Metric
               label="Selected incremental cost"
-              value={usd(selected.cost)}
+              value={usd(comparison.cost)}
               unit="USD"
             />
-            <Metric label="Exact service units protected" value="—" />
+            <Metric
+              label="Inventory before 12 Nov receipt"
+              value={number(comparison.remaining)}
+              unit="tins"
+            />
           </div>
-          <Missing>
-            Q3: receipt-before-demand convention and early / full receipt dates.
-            Q5: promo reduction and protected-demand baseline. The selected
-            comparison updates quantity and cost; exact trajectory is withheld.
-          </Missing>
+          <p className="source-context">
+            {number(selected.early)} tins on early freight ·{" "}
+            {number(selected.standard)} on standard freight.{" "}
+            {selected.early > 0 &&
+              `Early receipt: ${date(fixture.fbj.earlyDate)}.`}{" "}
+            {selected.standard > 0 &&
+              `Standard receipt: ${date(fixture.fbj.delayedDate)}.`}
+          </p>
           <p className="small-copy">
-            6,200 is service exposure before the delayed receipt. It excludes
-            the required safety reserve and is not the safety-inclusive supply
-            gap.
+            {number(comparison.promoRemoved)} promotional tins removed. Exposure
+            is unmet demand over W1–W5, before the delayed 12 Nov receipt; it
+            excludes the safety reserve. Receipts are available before that
+            period’s demand.
+          </p>
+          <p className="source-context">
+            Approved synthetic fixture v1.1 · Exact demo calculations, not
+            Fishwife actuals.
           </p>
         </section>
         <AnalystNote>
@@ -138,11 +135,18 @@ export function POIntervention() {
             </p>
             <p>
               <strong>{usd(costDifference())} less incremental cost</strong> ·
-              DERIVED from supplied option costs. Exact protected units remain
-              unconfirmed.
+              DERIVED from supplied option costs. 6,200 service units protected
+              versus accepting the delay.
             </p>
-            <p>Cash impact beyond incremental freight: Not specified.</p>
-            <p>Remaining exact exposure: Not specified.</p>
+            <p>
+              Existing PO value: {usd(s.sku.incoming * s.sku.unitCost!)} at{" "}
+              {usdPerTin(s.sku.unitCost!)} per tin. This committed purchase is
+              not incremental recovery spend.
+            </p>
+            <p>
+              Recommended split + reduce promo: 0 tins exposed; 200 tins remain
+              before the final receipt.
+            </p>
           </div>
           <div className="recommendation-block">
             <p className="eyebrow">FISHWIFE DECISION</p>

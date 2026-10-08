@@ -184,80 +184,304 @@ export function bundleSummary(protect = true) {
 }
 export const costDifference = () =>
   fixture.fbj.options[1].cost - fixture.fbj.options[3].cost;
-export function demandChart() {
-  const weeks = [
-    "2026-08-03",
-    ...fixture.history.map((h) => h.week),
-    "2026-10-12",
-    "2026-10-19",
-    "2026-10-26",
-  ];
-  return weeks.map((week) => ({
-    week,
-    label: new Date(week + "T12:00:00Z").toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      timeZone: "UTC",
-    }),
-    baseline: skuById("TUN-SL").baseline,
-    actual: fixture.history.find((h) => h.week === week)?.units ?? null,
-    forward: week > fixture.timeline.week ? lemonLearning().average : null,
-  }));
+export function addWeeks(date: string, weeks: number) {
+  const d = new Date(date + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + weeks * 7);
+  return d.toISOString().slice(0, 10);
+}
+export function channelUnits(total: number, shares: readonly number[]) {
+  const values = shares.map((share) => Math.round((total * share) / 100));
+  const largest = shares.indexOf(Math.max(...shares));
+  values[largest] += total - values.reduce((sum, value) => sum + value, 0);
+  return values;
+}
+export function demandContext(sku = "TUN-SL", channel = "ALL") {
+  const product = skuById(sku);
+  const model = fixture.modeledDemand.find((row) => row.sku === sku)!;
+  const channelIndex =
+    fixture.channels.findIndex((c) => c.name === channel) - 1;
+  const all = channel === "ALL";
+  const modeled = all || (channelIndex >= 0 && model.shares[channelIndex] > 0);
+  const portion = (total: number) =>
+    all ? total : channelUnits(total, model.shares)[channelIndex];
+  const weekly = modeled ? model.weekly.map(portion) : [];
+  const baseline = modeled ? portion(product.baseline) : null;
+  const current = modeled ? weekly.at(-1)! : null;
+  const average = mean(weekly.slice(-4));
+  const forward = modeled
+    ? portion(sku === "TUN-SL" ? lemonLearning().average! : product.current)
+    : null;
+  return {
+    product,
+    modeled,
+    weekly,
+    baseline,
+    current,
+    average,
+    forward,
+    variance: demandVariance(current, baseline),
+    uplift: persistence(average, baseline).uplift,
+    confidence: modeled ? model.confidence : null,
+    share: all ? 100 : (model.shares[channelIndex] ?? 0),
+  };
+}
+export function demandChart(sku = "TUN-SL", channel = "ALL") {
+  const context = demandContext(sku, channel);
+  if (!context.modeled) return [];
+  return Array.from({ length: 16 }, (_, i) => {
+    const week = addWeeks(fixture.historyStart, i);
+    return {
+      week,
+      label: new Date(week + "T12:00:00Z").toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      }),
+      baseline: context.baseline!,
+      actual: i < 13 ? context.weekly[i] : null,
+      forward: i >= 13 ? context.forward : null,
+    };
+  });
+}
+export type InventoryPoint = Projection & {
+  date: string;
+  label: string;
+  demand: number;
+  receipt: number;
+  protectedUnmet: number;
+};
+export function simulate(
+  onHand: number,
+  demand: readonly number[],
+  receipts: readonly number[],
+  safety: number,
+  protectedDemand: number,
+): InventoryPoint[] {
+  const projected = projectedInventory(
+    onHand,
+    demand,
+    receipts,
+    safety,
+    "receipt-before-demand",
+  )!;
+  return projected.map((row, i) => {
+    const available =
+      (i === 0 ? onHand : projected[i - 1].physical) + receipts[i];
+    return {
+      ...row,
+      date: addWeeks(fixture.timeline.planningDate, i),
+      label: `W${i + 1}`,
+      demand: demand[i],
+      receipt: receipts[i],
+      protectedUnmet: Math.max(
+        0,
+        Math.min(demand[i], protectedDemand) - available,
+      ),
+    };
+  });
+}
+export function fbjComparison(id: string) {
+  const option = fixture.fbj.options.find((o) => o.id === id);
+  if (!option) throw new Error("Unknown recovery option");
+  const sku = skuById("SAL-FBJ");
+  // Five complete demand periods, followed by the opening receipt on Nov 12.
+  const demand = Array.from({ length: 6 }, (_, i) =>
+    i === 5
+      ? 0
+      : sku.current -
+        (id === "split-promo" ? fixture.fbj.promoReduction[i] : 0),
+  );
+  const receipts = [0, 0, 0, option.early, 0, option.standard];
+  const rows = simulate(
+    sku.onHand,
+    demand,
+    receipts,
+    sku.current * sku.safetyWeeks,
+    fixture.fbj.protectedDemand,
+  );
+  const exposure = rows.slice(0, 5).reduce((sum, row) => sum + row.unmet, 0);
+  return {
+    option,
+    rows,
+    exposure,
+    protected: serviceUnitsProtected(fixture.fbj.exposure, exposure)!,
+    remaining: rows[4].physical,
+    safety: sku.current * sku.safetyWeeks,
+    stockout: stockoutWeek(rows.slice(0, 5)),
+    safetyBreach: safetyBreachWeek(rows.slice(0, 5)),
+    cost: option.cost,
+    promoRemoved: sku.current * 5 - demand.reduce((sum, n) => sum + n, 0),
+  };
 }
 export type ScenarioState = {
   preset: number;
   demandChange: number;
   delay: number;
-  protectedDemand: number | null;
-  premium: number | null;
+  protectedDemand: number;
+  premium: number;
 };
 export const initialScenario = (): ScenarioState => ({
-  preset: 0,
+  preset: -1,
   demandChange: 0,
   delay: 0,
-  protectedDemand: null,
-  premium: null,
+  protectedDemand: fixture.scenario.protectedBaseline,
+  premium: fixture.scenario.splitPremium,
 });
+export function scenarioPreset(index: number): ScenarioState {
+  const p = fixture.scenario.presets[index];
+  return {
+    ...initialScenario(),
+    preset: index,
+    demandChange: p.demandChange,
+    delay: p.delay,
+  };
+}
 export function validateScenario(
   key: Exclude<keyof ScenarioState, "preset">,
   value: string,
-): { value: number | null; error: string | null } {
-  if (value.trim() === "" && (key === "protectedDemand" || key === "premium"))
-    return { value: null, error: null };
+): { value: number; error: string | null } {
   const n = Number(value);
-  let ok = value.trim() !== "" && Number.isFinite(n);
+  let ok =
+    value.trim() !== "" &&
+    Number.isFinite(n) &&
+    Math.abs(n) <= Number.MAX_SAFE_INTEGER;
   if (key === "demandChange") ok = ok && n >= -20 && n <= 40;
   else if (key === "delay") ok = ok && Number.isInteger(n) && n >= 0 && n <= 6;
   else ok = ok && n >= 0 && (key !== "protectedDemand" || Number.isInteger(n));
-  return ok
-    ? { value: n, error: null }
-    : {
-        value: null,
-        error:
-          key === "demandChange"
-            ? "Enter a finite value from −20% to +40%."
-            : key === "delay"
-              ? "Enter a whole number from 0 to 6 weeks."
-              : "Enter a finite nonnegative " +
-                (key === "protectedDemand"
-                  ? "whole number of tins."
-                  : "USD amount."),
-      };
+  return {
+    value: n,
+    error: ok
+      ? null
+      : key === "demandChange"
+        ? "Enter a finite value from −20% to +40%."
+        : key === "delay"
+          ? "Enter a whole number from 0 to 6 weeks."
+          : "Enter a finite nonnegative " +
+            (key === "protectedDemand"
+              ? "whole number of tins."
+              : "USD amount."),
+  };
 }
 export function scenarioOutputs(state: ScenarioState) {
+  const config = fixture.scenario;
+  const sku = skuById(config.sku);
+  const demand = sku.current * (1 + state.demandChange / 100);
+  const safety = demand * sku.safetyWeeks;
+  const receiptIndex = 4 + state.delay;
+  // Custom cases recover no later than the original Nov 5 date; with no delay use Oct 29.
+  const earlyIndex = Math.min(receiptIndex - 1, 4);
+  const demands = Array.from({ length: receiptIndex + 1 }, (_, i) =>
+    i === receiptIndex
+      ? 0
+      : (state.preset === 2
+          ? (config.pullForward[i] ?? sku.current)
+          : sku.current) *
+        (1 + state.demandChange / 100),
+  );
+  const receiptSeries = (early: number) =>
+    demands.map((_, i) =>
+      i === earlyIndex ? early : i === receiptIndex ? sku.incoming - early : 0,
+    );
+  const base = simulate(
+    sku.onHand,
+    demands,
+    receiptSeries(0),
+    safety,
+    state.protectedDemand,
+  );
+  const split = simulate(
+    sku.onHand,
+    demands,
+    receiptSeries(config.splitQuantity),
+    safety,
+    state.protectedDemand,
+  );
+  const before = base.slice(0, receiptIndex);
+  const exposure = before.reduce((sum, row) => sum + row.unmet, 0);
+  const stockout = stockoutWeek(before);
+  const preReceipt = before.at(-1)!.physical;
+  const splitProtectedExposure = split
+    .slice(0, receiptIndex)
+    .reduce((sum, row) => sum + row.protectedUnmet, 0);
+  const intervention = stockout !== null || preReceipt < state.protectedDemand;
+  const response =
+    exposure > config.exposureThreshold || splitProtectedExposure > 0
+      ? "EXPEDITE"
+      : intervention
+        ? state.premium <= config.threshold
+          ? "SPLIT"
+          : "INVESTIGATE"
+        : state.preset === 2
+          ? "WATCH / HOLD"
+          : "HOLD";
+  const selected =
+    response === "EXPEDITE"
+      ? simulate(
+          sku.onHand,
+          demands,
+          receiptSeries(sku.incoming),
+          safety,
+          state.protectedDemand,
+        )
+      : response === "SPLIT"
+        ? split
+        : base;
+  const cash =
+    response === "EXPEDITE"
+      ? config.expeditePremium
+      : response === "SPLIT"
+        ? state.premium
+        : 0;
   return {
-    demand: skuById("SAL-FBJ").current * (1 + state.demandChange / 100),
-    stockout: null,
-    safetyBreach: null,
-    exposure: null,
-    cash: null,
-    response: "SPLIT",
-    reviewedChanged: false,
-    missing: [
-      "Receipt dates and ordering convention",
-      "Protected-demand baseline and promo reduction",
-      "Landed costs and recovery-cost threshold",
-    ],
-    context: fixture.scenario.presets[state.preset].label,
+    demand,
+    safety,
+    stockout,
+    safetyBreach: safetyBreachWeek(before),
+    exposure,
+    cash,
+    response,
+    preReceipt,
+    base,
+    selected,
+    splitProtectedExposure,
+    remainingExposure: selected
+      .slice(0, receiptIndex)
+      .reduce((sum, row) => sum + row.unmet, 0),
+    receiptDate: addWeeks(fixture.timeline.planningDate, receiptIndex),
+    earlyDate: addWeeks(fixture.timeline.planningDate, earlyIndex),
+    poValue: sku.incoming * sku.unitCost!,
+    context: config.presets[state.preset]?.label ?? "Current plan",
+    reasoning:
+      response === "EXPEDITE"
+        ? "Exposure exceeds 4,000 tins or split recovery leaves protected demand unserved. Compare a full expedite; residual exposure remains visible below."
+        : response === "SPLIT"
+          ? "Inventory before receipt falls below one week of protected demand, or stock runs out. The split premium is within the $4,000 demo threshold."
+          : response === "INVESTIGATE"
+            ? "Service risk warrants intervention, but the entered split premium exceeds the $4,000 demo threshold. Review recovery cost before committing."
+            : state.preset === 2
+              ? "Demand moved forward in time without increasing the total requirement. Monitor the next reorder cycle; do not add production solely because early weeks are stronger."
+              : "The current commitment covers demand through receipt and retains at least one week of protected demand. Keep the current plan.",
   };
+}
+
+/** Proposed schedules supplement original PO records; they do not mutate the commitments. */
+export function recoverySchedule(
+  sku: string,
+): { date: string; quantity: number }[] | null {
+  if (sku === "SAL-FBJ")
+    return [
+      { date: fixture.fbj.earlyDate, quantity: 4000 },
+      { date: fixture.fbj.delayedDate, quantity: 2000 },
+    ];
+  if (sku === "MUS-BP")
+    return [
+      { date: fixture.mussels.earlyDate, quantity: 8000 },
+      { date: fixture.mussels.remainingDate, quantity: 4000 },
+    ];
+  if (sku === "MUS-SPG")
+    return [
+      { date: fixture.mussels.sweetPepperRetainedDate, quantity: 4000 },
+      { date: fixture.mussels.displacedDate, quantity: 8000 },
+    ];
+  return null;
 }

@@ -1,7 +1,12 @@
 "use client";
 import { useState } from "react";
 import { fixture, type PO } from "../data/fishwife.v1";
-import { skuById, skuMetrics, totals } from "../engine/fishwife";
+import {
+  skuById,
+  skuMetrics,
+  totals,
+  recoverySchedule,
+} from "../engine/fishwife";
 import { date, decimal, number, usd } from "../engine/formatters";
 import {
   AnalystNote,
@@ -76,8 +81,9 @@ export function SupplyView() {
           </div>
           <p className="chart-summary">
             Production → Ready → Transit → Expected receipt. Supplied dates are
-            original date-only arrival records. Stage timing, updated receipt
-            dates and exact projected position remain unconfirmed.
+            original date-only arrival records. Proposed FBJ and mussel recovery
+            receipts appear below; production, ready and transit dates remain
+            unspecified.
           </p>
         </section>
         <AnalystNote
@@ -101,7 +107,16 @@ export function SupplyView() {
               {usd(fixture.mussels.cost)} USD incremental. Total packing
               capacity stays unchanged.
             </p>
-            <p>Cost of adding capacity: Not specified.</p>
+            <p>
+              Proposed Basil Pesto: 8,000 on {date(fixture.mussels.earlyDate)},
+              4,000 on {date(fixture.mussels.remainingDate)}. Sweet Pepper:
+              4,000 retained on {date(fixture.mussels.sweetPepperRetainedDate)},
+              8,000 moved to {date(fixture.mussels.displacedDate)}.
+            </p>
+            <p>
+              Illustrative fixture v1.1. No finished tins transfer between
+              flavors.
+            </p>
           </div>
           <PlanLink href="/po-intervention">
             Compare FBJ recovery options
@@ -148,7 +163,14 @@ export function SupplyView() {
               <span key="date">
                 Original {date(p.originalArrival)}
                 <br />
-                <span className="small-copy">Updated: Not specified</span>
+                <span className="small-copy">
+                  {recoverySchedule(s.id)
+                    ? "Proposed recovery: " +
+                      recoverySchedule(s.id)!
+                        .map((r) => `${number(r.quantity)} on ${date(r.date)}`)
+                        .join("; ")
+                    : "No revised receipt supplied"}
+                </span>
               </span>,
               "Not specified",
               <Badge
@@ -167,9 +189,10 @@ export function SupplyView() {
           })}
         />
         <Missing>
-          Exact projected position and mussel resequence dates need Q3 / Q4 / Q6
-          confirmation. A date-only ETA is kept separate from the SKU’s
-          elapsed-week incoming assumption.
+          Production, ready and transit stages remain unspecified. The v1.1
+          recovery dates are illustrative proposals; original PO records and IDs
+          are preserved. Exact positions for other POs still depend on their
+          planning assumptions.
         </Missing>
       </section>
       <section className="panel" style={{ marginTop: 24 }}>

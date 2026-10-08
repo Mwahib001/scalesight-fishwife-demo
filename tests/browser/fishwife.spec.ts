@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { fixture } from "../../src/data/fishwife.v1";
 import AxeBuilder from "@axe-core/playwright";
 const routes = [
   ["/", "Weekly Supply Planning Brief"],
@@ -134,11 +135,16 @@ test("Channel empty state and SKU context update together; reset restores canoni
 }) => {
   await page.goto("/demand");
   await expect(
-    page.getByRole("img", { name: /Spanish Lemon demand/ }),
+    page.getByRole("img", { name: /Spanish Lemon Tuna demand/ }),
   ).toBeVisible();
   await page.getByRole("button", { name: "DTC", exact: true }).click();
+  await expect(
+    page.getByRole("img", { name: /Spanish Lemon Tuna demand/ }),
+  ).toBeVisible();
+  await expect(page.locator(".metric-grid")).toContainText("1,680");
+  await page.getByRole("button", { name: "Whole Foods", exact: true }).click();
   await expect(page.locator(".empty-state")).toContainText(
-    "No supplied observations for this context.",
+    "No modeled observations.",
   );
   await expect(page.locator(".metric-grid")).not.toContainText("5,600");
   await page.getByLabel("Product context").selectOption("TRT-ORIG");
@@ -147,7 +153,7 @@ test("Channel empty state and SKU context update together; reset restores canoni
   await page.getByRole("button", { name: "Reset to current plan" }).click();
   await expect(page.getByLabel("Product context")).toHaveValue("TUN-SL");
   await expect(
-    page.getByRole("img", { name: /Spanish Lemon demand/ }),
+    page.getByRole("img", { name: /Spanish Lemon Tuna demand/ }),
   ).toBeVisible();
 });
 test("Canonical PO rows are read-only, with missing stage dates", async ({
@@ -220,12 +226,12 @@ test("Four bounded scenario inputs validate, retain last valid state and reset a
   await page.goto("/scenario");
   await expect(page.locator(".scenario-controls input")).toHaveCount(4);
   await page.getByLabel("Demand change").fill("40");
-  await expect(page.locator(".source-context").first()).toContainText("4,200");
+  await expect(page.locator(".source-context").first()).toContainText("5,040");
   await page.getByLabel("Demand change").fill("41");
   await expect(page.locator(".input-error[role=alert]")).toContainText(
     "Last valid",
   );
-  await expect(page.locator(".source-context").first()).toContainText("4,200");
+  await expect(page.locator(".source-context").first()).toContainText("5,040");
   await page.getByLabel("Receipt delay").fill("1.5");
   await expect(page.getByLabel("Receipt delay")).toHaveAttribute(
     "aria-invalid",
@@ -234,18 +240,18 @@ test("Four bounded scenario inputs validate, retain last valid state and reset a
   await page.getByLabel("Protected demand").fill("-1");
   await page.getByLabel("Expedite premium").fill("Infinity");
   await page.getByRole("tab", { name: "Supplier slips" }).click();
-  await expect(page.getByRole("tabpanel")).toContainText(
-    "Exact preset values are not supplied",
-  );
+  await expect(page.getByLabel("Receipt delay")).toHaveValue("2");
+  await expect(page.locator(".scenario-outputs")).toContainText("1,600");
   await page.getByRole("button", { name: "Reset to current plan" }).click();
   await expect(page.getByLabel("Demand change")).toHaveValue("0");
   await expect(page.getByLabel("Receipt delay")).toHaveValue("0");
-  await expect(page.getByLabel("Protected demand")).toHaveValue("");
-  await expect(page.getByLabel("Expedite premium")).toHaveValue("");
+  await expect(page.getByLabel("Protected demand")).toHaveValue("2500");
+  await expect(page.getByLabel("Expedite premium")).toHaveValue("3600");
   await expect(page.locator(".input-error[role=alert]")).toHaveCount(0);
   await expect(
-    page.getByRole("tab", { name: "Demand holds higher" }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("heading", { name: "Current plan", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("tab", { selected: true })).toHaveCount(0);
 });
 test("Managed-service narrative, supplied logos and nine-step cycle", async ({
   page,
@@ -360,43 +366,40 @@ test("Mobile footer navigation and resize release the menu and scroll lock", asy
   await expect(page.locator(".sidebar")).toBeVisible();
 });
 
-test("All demand contexts retain only supplied data and disclose all chart gaps", async ({
+test("All 84 demand contexts chart modeled shares and preserve zero-share empty states", async ({
   page,
 }) => {
   await page.goto("/demand");
-  await page.getByText("View weekly observations and source gaps").click();
-  const chart = page.getByRole("region", {
-    name: "Weekly observations",
-    exact: true,
-  });
-  await expect(chart.locator("tbody tr")).toHaveCount(13);
+  await page.getByText("View weekly observations and assumptions").click();
   await expect(
-    chart.getByText("no supplied observation", { exact: true }),
-  ).toHaveCount(4);
-  const skus = await page
-    .getByLabel("Product context")
-    .locator("option")
-    .evaluateAll((nodes) => nodes.map((n) => (n as HTMLOptionElement).value));
-  for (const sku of skus) {
-    await page.getByLabel("Product context").selectOption(sku);
-    await page.getByRole("button", { name: "ALL", exact: true }).click();
-    await expect(
-      page
-        .locator(".metric-grid .metric")
-        .filter({ hasText: "Variance vs baseline" }),
-    ).not.toContainText("—");
+    page
+      .getByRole("region", { name: "Weekly observations", exact: true })
+      .locator("tbody tr"),
+  ).toHaveCount(16);
+  for (const model of fixture.modeledDemand) {
+    await page.getByLabel("Product context").selectOption(model.sku);
     const channels = page.locator(".channel-tabs button");
-    for (let i = 1; i < (await channels.count()); i++) {
+    for (let i = 0; i < 7; i++) {
       await channels.nth(i).click();
-      await expect(page.locator(".empty-state")).toBeVisible();
-      await expect(page.locator(".metric-grid .metric").first()).toContainText(
-        "—",
-      );
+      if (i === 0 || model.shares[i - 1] > 0) {
+        await expect(page.locator(".planning-plot")).toBeVisible();
+        await expect(
+          page.locator(".metric-grid .metric").first(),
+        ).not.toContainText("—");
+        await expect(page.locator(".metric-grid")).toContainText(
+          model.confidence,
+        );
+      } else {
+        await expect(page.locator(".empty-state")).toContainText(
+          "No modeled observations.",
+        );
+        await expect(page.locator(".planning-plot")).toHaveCount(0);
+      }
     }
   }
 });
 
-test("Every recovery comparison updates its selected quantities and cost", async ({
+test("Every recovery comparison updates its chart, exposure, quantities and cost", async ({
   page,
 }) => {
   await page.goto("/po-intervention");
@@ -411,38 +414,57 @@ test("Every recovery comparison updates its selected quantities and cost", async
     await expect(cards.nth(i)).toHaveAttribute("aria-pressed", "true");
     const panel = page.locator(".two-col>.panel");
     await expect(panel).toContainText(cost);
+    await expect(
+      panel.getByRole("img", { name: /FBJ recovery inventory/ }),
+    ).toBeVisible();
+    await expect(
+      panel.locator(".metric").filter({ hasText: "Service exposure" }),
+    ).toContainText(["6,200", "200", "2,200", "0"][i]);
+    await expect(
+      panel.locator(".metric").filter({ hasText: "Service units protected" }),
+    ).toContainText(["0", "6,000", "4,000", "6,200"][i]);
     await expect(panel).toContainText(
       `${early} tins on early freight · ${standard} on standard freight`,
     );
   }
 });
 
-test("Scenario assumptions acknowledge all valid controls and keyboard tabs", async ({
+test("Scenario presets, all controls, premium threshold and keyboard tabs calculate live", async ({
   page,
 }) => {
   await page.goto("/scenario");
-  await page.getByLabel("Receipt delay").fill("2");
-  await page.getByLabel("Protected demand").fill("1500");
+  const response = page.getByTestId("scenario-response");
+  await expect(response.locator(".badge")).toHaveText("HOLD");
+  await page.getByRole("tab", { name: "Demand holds higher" }).click();
+  await expect(page.getByLabel("Demand change")).toHaveValue("25");
+  await expect(page.locator(".scenario-outputs")).toContainText("Week 2");
+  await expect(response.locator(".badge")).toHaveText("SPLIT");
+  await expect(page.locator(".scenario-outputs")).toContainText("$3,600");
+  await page.getByLabel("Expedite premium").fill("4001");
+  await expect(response.locator(".badge")).toHaveText("INVESTIGATE");
   await page.getByLabel("Expedite premium").fill("2400");
-  const summary = page.locator(".source-context").first();
-  await expect(summary).toContainText("Receipt delay override: 2 weeks");
-  await expect(summary).toContainText("Protected demand: 1,500 tins");
-  await expect(summary).toContainText("Expedite premium: $2,400 USD");
-  await page.getByRole("tab").first().focus();
+  await expect(page.locator(".scenario-outputs")).toContainText("$2,400");
+  await page.getByLabel("Protected demand").fill("1900");
+  await expect(response.locator(".badge")).toHaveText("HOLD");
+  await page.getByRole("tab", { name: "Supplier slips" }).click();
+  await expect(page.getByLabel("Receipt delay")).toHaveValue("2");
+  await expect(page.locator(".scenario-outputs")).toContainText("Week 6");
+  await expect(page.locator(".scenario-outputs")).toContainText("1,600");
+  await page.getByRole("tab").nth(1).focus();
   await page.keyboard.press("End");
   await expect(page.getByRole("tab").last()).toBeFocused();
-  await expect(page.getByRole("tab").last()).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  await expect(response.locator(".badge")).toHaveText("WATCH / HOLD");
+  await expect(page.locator(".scenario-outputs")).toContainText("Week 3");
+  await expect(page.locator(".scenario-outputs")).toContainText("$0");
   await page.keyboard.press("Home");
   await expect(page.getByRole("tab").first()).toHaveAttribute(
     "aria-selected",
     "true",
   );
+  await page.getByLabel("Receipt delay").fill("6");
+  await expect(response.locator(".badge")).toHaveText("EXPEDITE");
   await page.getByRole("button", { name: "Reset to current plan" }).click();
-  await expect(summary).toContainText("Receipt delay override: 0 weeks");
-  await expect(summary).toContainText("Protected demand: Not specified");
+  await expect(response.locator(".badge")).toHaveText("HOLD");
 });
 
 test("Disclosure navigation closes the persistent disclosure", async ({
