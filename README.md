@@ -10,7 +10,16 @@ Next.js 16.3.4 App Router, React 19, TypeScript, pnpm. Uses official product pho
 pnpm dev
 ```
 
-For a production preview, run `pnpm build` then `pnpm start`.
+For a production preview:
+
+```sh
+pnpm build
+pnpm start
+```
+
+Use these package scripts rather than invoking `next start` directly. Production startup takes a private snapshot of the completed build under `.production/`; rebuilding `.next` cannot remove files from the running server. Restart `pnpm start` after a successful build to serve the new version. Each build has a deployment ID for Next.js version-skew detection. Concurrent build/start preparation is rejected with an actionable message; active servers can continue running during a new build. Snapshots are deleted on normal shutdown.
+
+`pnpm dev` still runs the development server separately. A production server serves the last built version, not subsequent source edits.
 
 ## Verify
 
@@ -20,9 +29,10 @@ pnpm typecheck
 pnpm lint
 pnpm build
 pnpm test:e2e
+pnpm test:production
 ```
 
-`pnpm verify:fishwife` runs the complete sequence. Browser tests use the production build on port 3100 and the available Google Chrome executable. An override is supported through `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.
+`pnpm verify:fishwife` runs the unit, typecheck, lint, build and browser sequence. `pnpm test:production` additionally rebuilds while serving uncached interactive requests on port 3101, then tests restart with the new deployment. Browser tests use the production build on port 3100 and the available Google Chrome executable. An override is supported through `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.
 
 ## Planning routes
 

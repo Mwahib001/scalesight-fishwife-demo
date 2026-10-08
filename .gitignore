@@ -48,3 +48,6 @@ next-env.d.ts
 /.test-build/
 /test-results/
 /playwright-report/
+
+# Isolated production server snapshots
+/.production/
