@@ -22,14 +22,27 @@ export function DemandChart({
     ) * 500 || 500;
   const x = (i: number) => 62 + i * 41;
   const y = (value: number) => 247 - (value / max) * 180;
-  const path = (key: "baseline" | "actual" | "forward") =>
-    rows.reduce(
+  const path = (key: "baseline" | "actual" | "forward") => {
+    if (key === "forward") {
+      const startPoint = rows[12];
+      if (startPoint && startPoint.actual !== null) {
+        let d = `M${x(12)} ${y(startPoint.actual)}`;
+        for (let i = 13; i < rows.length; i++) {
+          if (rows[i].forward !== null) {
+            d += ` L${x(i)} ${y(rows[i].forward!)}`;
+          }
+        }
+        return d;
+      }
+    }
+    return rows.reduce(
       (text, row, i) =>
         row[key] === null
           ? text
           : `${text} ${i === 0 || rows[i - 1][key] === null ? "M" : "L"}${x(i)} ${y(row[key]!)}`,
       "",
     );
+  };
   return (
     <div className="chart-frame">
       <div

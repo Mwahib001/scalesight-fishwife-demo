@@ -14,11 +14,75 @@ import {
 } from "./ui";
 import { DemandChart } from "./DemandChart";
 export function DemandView() {
-  const [sku, setSku] = useState("TUN-SL");
-  const [channel, setChannel] = useState("ALL");
+  const [sku, setSku] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem("scalesight_demand_sku");
+        if (saved && fixture.skus.some((s) => s.id === saved)) return saved;
+      } catch {
+        // ignore
+      }
+    }
+    return "TUN-SL";
+  });
+
+  const [channel, setChannel] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem("scalesight_demand_channel");
+        if (saved && fixture.channels.some((c) => c.name === saved)) return saved;
+      } catch {
+        // ignore
+      }
+    }
+    return "ALL";
+  });
+
+  const updateSku = (newSku: string) => {
+    setSku(newSku);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("scalesight_demand_sku", newSku);
+    }
+  };
+
+  const updateChannel = (newChannel: string) => {
+    setChannel(newChannel);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("scalesight_demand_channel", newChannel);
+    }
+
+    if (newChannel === "ALL") return;
+
+    const targetCtx = demandContext(sku, newChannel);
+    if (!targetCtx.modeled) {
+      if (newChannel === "Whole Foods" || newChannel === "Costco / Club") {
+        updateSku("TUN-SP");
+      } else if (newChannel === "Target") {
+        updateSku("TUN-SL");
+      }
+    }
+  };
+
+  const handleReset = () => {
+    updateSku("TUN-SL");
+    setChannel("ALL");
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("scalesight_demand_channel", "ALL");
+    }
+  };
+
   const m = skuMetrics(sku);
   const context = demandContext(sku, channel);
   const hasSeries = context.modeled;
+
+  const getIsSkuModeled = (sId: string) => {
+    if (channel === "ALL") return true;
+    return demandContext(sId, channel).modeled;
+  };
+
+  const modeledSkus = fixture.skus.filter((s) => getIsSkuModeled(s.id));
+  const unmodeledSkus = fixture.skus.filter((s) => !getIsSkuModeled(s.id));
+
   return (
     <>
       <PageHeading
@@ -31,22 +95,29 @@ export function DemandView() {
           <select
             aria-label="Product context"
             value={sku}
-            onChange={(e) => setSku(e.target.value)}
+            onChange={(e) => updateSku(e.target.value)}
           >
-            {fixture.skus.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
+            {modeledSkus.length > 0 && (
+              <optgroup label="Modeled in this channel">
+                {modeledSkus.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {unmodeledSkus.length > 0 && (
+              <optgroup label="Not modeled in this channel">
+                {unmodeledSkus.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </label>
-        <button
-          className="secondary-button"
-          onClick={() => {
-            setSku("TUN-SL");
-            setChannel("ALL");
-          }}
-        >
+        <button className="secondary-button" onClick={handleReset}>
           <RotateCcw size={13} />
           Reset to current plan
         </button>
@@ -56,7 +127,7 @@ export function DemandView() {
           <button
             key={c.name}
             aria-pressed={channel === c.name}
-            onClick={() => setChannel(c.name)}
+            onClick={() => updateChannel(c.name)}
           >
             {c.name}
           </button>
@@ -72,11 +143,9 @@ export function DemandView() {
             <DemandChart sku={sku} channel={channel} />
           ) : (
             <div className="empty-state">
-              No modeled observations.
-              <p className="chart-summary">
-                This channel has a 0% share in the approved illustrative mix. It
-                is not evidence of zero actual Fishwife demand.
-              </p>
+              No modeled observations. This SKU is not included in the approved
+              illustrative channel mix. This is not evidence of zero actual
+              Fishwife demand.
             </div>
           )}
         </section>
@@ -113,14 +182,24 @@ export function DemandView() {
           <p className="interpretation-copy">
             {!hasSeries
               ? "No modeled observations for this channel."
-              : sku === "TUN-SL"
-                ? "Demand remains elevated after the collaboration. Reserve capacity while reviewing the next retailer reorder cycle."
-                : sku === "TRT-ORIG"
-                  ? "Demand-learning confidence is LOW: constrained availability can censor true demand."
-                  : sku === "MUS-BP"
-                    ? "Recent acceleration supports review of existing packing capacity before adding a new commitment."
-                    : "The complete illustrative history shows how demand has evolved against the baseline. Keep the supplied SKU recommendation in view."}
+              : context.interpretation
+                ? context.interpretation
+                : sku === "TUN-SL"
+                  ? "Demand remains elevated after the collaboration. Reserve capacity while reviewing the next retailer reorder cycle."
+                  : sku === "TRT-ORIG"
+                    ? "Demand-learning confidence is LOW: constrained availability can censor true demand."
+                    : sku === "MUS-BP"
+                      ? "Recent acceleration supports review of existing packing capacity before adding a new commitment."
+                      : "The complete illustrative history shows how demand has evolved against the baseline. Keep the supplied SKU recommendation in view."}
           </p>
+          {context.planningQuestion && (
+            <p
+              className="small-copy"
+              style={{ marginTop: 8, fontStyle: "italic" }}
+            >
+              {context.planningQuestion}
+            </p>
+          )}
           <p className="small-copy">
             {channel === "ALL"
               ? "All modeled channels combined."
@@ -130,7 +209,16 @@ export function DemandView() {
           </p>
           <div className="recommendation-block">
             <p className="eyebrow">REVIEWED CURRENT-PLAN RECOMMENDATION</p>
-            <Badge label={m.sku.label} tone="blue" />
+            <Badge
+              label={context.action ?? m.sku.label}
+              tone={
+                (context.action ?? m.sku.label).includes("REALLOCATE")
+                  ? "blue"
+                  : (context.action ?? m.sku.label).includes("WATCH")
+                    ? "yellow"
+                    : "blue"
+              }
+            />
             <p>
               {sku === "TUN-SL" && hasSeries
                 ? "Reserve the next production slot. Confirm final incremental quantity after the next retailer reorder cycle."
@@ -141,8 +229,10 @@ export function DemandView() {
         </aside>
       </div>
       <p className="source-context">
-        Synthetic demo inputs · Approved fixture v1.1. Channel shares and
-        history are illustrative, not Fishwife actuals.
+        Retailer placement is informed by public store pages (PUBLIC FACT). All
+        volumes are synthetic demo inputs (SYNTHETIC DEMO INPUT), not Fishwife
+        retailer sell-through. Approved fixture v1.1. Channel histories use
+        fixed illustrative shares, not independent retailer observations.
       </p>
     </>
   );

@@ -143,6 +143,11 @@ test("Channel empty state and SKU context update together; reset restores canoni
   ).toBeVisible();
   await expect(page.locator(".metric-grid")).toContainText("1,680");
   await page.getByRole("button", { name: "Whole Foods", exact: true }).click();
+  await expect(page.getByLabel("Product context")).toHaveValue("TUN-SP");
+  await expect(
+    page.getByRole("img", { name: /Spicy Tuna demand/ }),
+  ).toBeVisible();
+  await page.getByLabel("Product context").selectOption("TUN-SL");
   await expect(page.locator(".empty-state")).toContainText(
     "No modeled observations.",
   );
@@ -377,17 +382,17 @@ test("All 84 demand contexts chart modeled shares and preserve zero-share empty 
       .locator("tbody tr"),
   ).toHaveCount(16);
   for (const model of fixture.modeledDemand) {
-    await page.getByLabel("Product context").selectOption(model.sku);
     const channels = page.locator(".channel-tabs button");
     for (let i = 0; i < 7; i++) {
       await channels.nth(i).click();
+      await page.getByLabel("Product context").selectOption(model.sku);
       if (i === 0 || model.shares[i - 1] > 0) {
         await expect(page.locator(".planning-plot")).toBeVisible();
         await expect(
           page.locator(".metric-grid .metric").first(),
         ).not.toContainText("—");
         await expect(page.locator(".metric-grid")).toContainText(
-          model.confidence,
+          model.sku === "TRT-ORIG" && i === 4 ? "LOW" : model.confidence,
         );
       } else {
         await expect(page.locator(".empty-state")).toContainText(

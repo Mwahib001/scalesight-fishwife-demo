@@ -571,6 +571,83 @@ const decisions: Decision[] = [
     confidence: null,
   },
 ];
+export type PinnedChannelSeries = Lineage & {
+  channel: string;
+  sku: string;
+  weekly: readonly number[];
+  baseline: number;
+  forward: readonly number[];
+  confidence: Confidence;
+  action?: Action | string;
+  interpretation?: string;
+  planningQuestion?: string;
+};
+
+export const pinnedChannelSeries: readonly PinnedChannelSeries[] = [
+  {
+    ...supplementSource,
+    channel: "Whole Foods",
+    sku: "TUN-SP",
+    weekly: [1210, 1220, 1240, 1230, 1250, 1260, 1270, 1250, 1280, 1285, 1295, 1305, 1300],
+    baseline: 1240,
+    forward: [1320, 1340, 1350],
+    confidence: "HIGH",
+  },
+  {
+    ...supplementSource,
+    channel: "Whole Foods",
+    sku: "TUN-OO",
+    weekly: [1325, 1313, 1300, 1306, 1288, 1275, 1269, 1263, 1250, 1238, 1250, 1244, 1250],
+    baseline: 1300,
+    forward: [1250, 1250, 1250],
+    confidence: "HIGH",
+  },
+  {
+    ...supplementSource,
+    channel: "Whole Foods",
+    sku: "SAR-PL",
+    weekly: [820, 830, 840, 845, 850, 860, 865, 870, 880, 885, 890, 895, 900],
+    baseline: 840,
+    forward: [910, 920, 930],
+    confidence: "HIGH",
+  },
+  {
+    ...supplementSource,
+    channel: "Whole Foods",
+    sku: "MAC-CHILI",
+    weekly: [570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 620],
+    baseline: 580,
+    forward: [620, 625, 625],
+    confidence: "HIGH",
+  },
+  {
+    ...supplementSource,
+    channel: "Costco / Club",
+    sku: "TUN-SP",
+    weekly: [1513, 1525, 1550, 1538, 1563, 1575, 1588, 1563, 1600, 1606, 1619, 1631, 1625],
+    baseline: 1550,
+    forward: [1650, 1650, 1675],
+    confidence: "HIGH",
+    action: "HOLD / WATCH",
+    interpretation:
+      "Steady retailer velocity supports the current commitment. No need to deepen aggressively yet.",
+  },
+  {
+    ...supplementSource,
+    channel: "Costco / Club",
+    sku: "TRT-ORIG",
+    weekly: [570, 570, 555, 540, 525, 510, 495, 480, 465, 450, 480, 495, 510],
+    baseline: 570,
+    forward: [510, 500, 490],
+    confidence: "LOW",
+    action: "REALLOCATE",
+    interpretation:
+      "Lower modeled movement should not be treated as weaker true demand because constrained supply can censor observed sales.",
+    planningQuestion:
+      "How much of scarce trout inventory should remain protected for Costco versus Target, wholesale, subscriptions and bundle assembly?",
+  },
+];
+
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === "object") {
     Object.freeze(value);
@@ -578,9 +655,11 @@ function deepFreeze<T>(value: T): T {
   }
   return value;
 }
+
 export const fixture = deepFreeze({
   version: "fishwife-v1.1",
   supplement: supplementSource,
+  pinnedChannelSeries,
   modeledDemand: Object.keys(demandHistory).map((sku) => ({
     ...supplementSource,
     sku,

@@ -189,28 +189,170 @@ export function addWeeks(date: string, weeks: number) {
   d.setUTCDate(d.getUTCDate() + weeks * 7);
   return d.toISOString().slice(0, 10);
 }
+const CHANNEL_NAMES = [
+  "DTC",
+  "Target",
+  "Whole Foods",
+  "Costco / Club",
+  "Amazon",
+  "Independent / Wholesale",
+];
+
+export function getSkuWeeklyChannelBreakdown(
+  sku: string,
+  weekIndex: number,
+): number[] {
+  const model = fixture.modeledDemand.find((m) => m.sku === sku);
+  if (!model) return new Array(6).fill(0);
+  const total = model.weekly[weekIndex];
+  const shares = model.shares;
+  const values: number[] = new Array(6).fill(0);
+  const isPinned: boolean[] = new Array(6).fill(false);
+
+  for (let i = 0; i < 6; i++) {
+    const chName = CHANNEL_NAMES[i];
+    const pinned = fixture.pinnedChannelSeries?.find(
+      (p) => p.channel === chName && p.sku === sku,
+    );
+    if (pinned) {
+      values[i] = pinned.weekly[weekIndex];
+      isPinned[i] = true;
+    } else if (shares[i] > 0) {
+      values[i] = Math.round((total * shares[i]) / 100);
+    } else {
+      values[i] = 0;
+    }
+  }
+
+  const sum = values.reduce((a, b) => a + b, 0);
+  const residual = total - sum;
+
+  if (residual !== 0) {
+    let maxShare = -1;
+    let targetIdx = -1;
+    for (let i = 0; i < 6; i++) {
+      if (!isPinned[i] && shares[i] > 0) {
+        if (shares[i] > maxShare) {
+          maxShare = shares[i];
+          targetIdx = i;
+        }
+      }
+    }
+    if (targetIdx >= 0) {
+      values[targetIdx] += residual;
+    }
+  }
+
+  return values;
+}
+
+export type ReconciliationReport = {
+  pair: string;
+  week: number;
+  generated: number;
+  canonical: number;
+  diff: number;
+};
+
+export function reconcileChannelSeries(): ReconciliationReport[] {
+  const mismatches: ReconciliationReport[] = [];
+  if (!fixture.pinnedChannelSeries) return mismatches;
+  for (const pinned of fixture.pinnedChannelSeries) {
+    const model = fixture.modeledDemand.find((m) => m.sku === pinned.sku)!;
+    const channelIndex = CHANNEL_NAMES.indexOf(pinned.channel);
+    for (let w = 0; w < 13; w++) {
+      const total = model.weekly[w];
+      const share = model.shares[channelIndex];
+      const generated = Math.round((total * share) / 100);
+      const canonical = pinned.weekly[w];
+      if (generated !== canonical) {
+        mismatches.push({
+          pair: `${pinned.channel} - ${pinned.sku}`,
+          week: w + 1,
+          generated,
+          canonical,
+          diff: canonical - generated,
+        });
+      }
+    }
+  }
+  return mismatches;
+}
+
 export function channelUnits(total: number, shares: readonly number[]) {
   const values = shares.map((share) => Math.round((total * share) / 100));
   const largest = shares.indexOf(Math.max(...shares));
   values[largest] += total - values.reduce((sum, value) => sum + value, 0);
   return values;
 }
+
 export function demandContext(sku = "TUN-SL", channel = "ALL") {
   const product = skuById(sku);
   const model = fixture.modeledDemand.find((row) => row.sku === sku)!;
   const channelIndex =
     fixture.channels.findIndex((c) => c.name === channel) - 1;
   const all = channel === "ALL";
-  const modeled = all || (channelIndex >= 0 && model.shares[channelIndex] > 0);
-  const portion = (total: number) =>
-    all ? total : channelUnits(total, model.shares)[channelIndex];
-  const weekly = modeled ? model.weekly.map(portion) : [];
-  const baseline = modeled ? portion(product.baseline) : null;
+  const pinned = fixture.pinnedChannelSeries?.find(
+    (p) => p.channel === channel && p.sku === sku,
+  );
+  const modeled =
+    all || (channelIndex >= 0 && (model.shares[channelIndex] > 0 || !!pinned));
+
+  let weekly: number[] = [];
+  if (modeled) {
+    if (all) {
+      weekly = [...model.weekly];
+    } else if (pinned) {
+      weekly = [...pinned.weekly];
+    } else {
+      weekly = model.weekly.map(
+        (_, wIdx) => getSkuWeeklyChannelBreakdown(sku, wIdx)[channelIndex],
+      );
+    }
+  }
+
+  let baseline: number | null = null;
+  if (modeled) {
+    if (all) {
+      baseline = product.baseline;
+    } else if (pinned) {
+      baseline = pinned.baseline;
+    } else {
+      const portion = (total: number) =>
+        channelUnits(total, model.shares)[channelIndex];
+      baseline = portion(product.baseline);
+    }
+  }
+
   const current = modeled ? weekly.at(-1)! : null;
   const average = mean(weekly.slice(-4));
-  const forward = modeled
-    ? portion(sku === "TUN-SL" ? lemonLearning().average! : product.current)
-    : null;
+
+  let forwardArray: (number | null)[] = [null, null, null];
+  if (modeled) {
+    if (all) {
+      const fVal =
+        sku === "TUN-SL" ? lemonLearning().average! : product.current;
+      forwardArray = [fVal, fVal, fVal];
+    } else if (pinned) {
+      forwardArray = [...pinned.forward];
+    } else {
+      const fVal = channelUnits(
+        sku === "TUN-SL" ? lemonLearning().average! : product.current,
+        model.shares,
+      )[channelIndex];
+      forwardArray = [fVal, fVal, fVal];
+    }
+  }
+
+  let confidence: Confidence | null = null;
+  if (modeled) {
+    if (pinned) {
+      confidence = pinned.confidence;
+    } else {
+      confidence = model.confidence;
+    }
+  }
+
   return {
     product,
     modeled,
@@ -218,13 +360,18 @@ export function demandContext(sku = "TUN-SL", channel = "ALL") {
     baseline,
     current,
     average,
-    forward,
+    forward: forwardArray[0],
+    forwardArray,
     variance: demandVariance(current, baseline),
     uplift: persistence(average, baseline).uplift,
-    confidence: modeled ? model.confidence : null,
+    confidence,
     share: all ? 100 : (model.shares[channelIndex] ?? 0),
+    action: pinned?.action ?? null,
+    interpretation: pinned?.interpretation ?? null,
+    planningQuestion: pinned?.planningQuestion ?? null,
   };
 }
+
 export function demandChart(sku = "TUN-SL", channel = "ALL") {
   const context = demandContext(sku, channel);
   if (!context.modeled) return [];
@@ -239,7 +386,7 @@ export function demandChart(sku = "TUN-SL", channel = "ALL") {
       }),
       baseline: context.baseline!,
       actual: i < 13 ? context.weekly[i] : null,
-      forward: i >= 13 ? context.forward : null,
+      forward: i >= 13 ? context.forwardArray[i - 13] : null,
     };
   });
 }

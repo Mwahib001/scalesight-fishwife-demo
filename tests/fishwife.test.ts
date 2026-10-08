@@ -220,6 +220,110 @@ test("Complete histories conserve integer units across every modeled channel", (
   for (const id of ["TUN-SG", "SAR-HP", "MAC-CHILI"])
     assert.ok(!fixture.pos.some((p) => p.sku === id));
 });
+test("Demand by channel pinned arrays, derived changes, reconciliation and interaction rules", () => {
+  assert.equal(fixture.pinnedChannelSeries.length, 6);
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Whole Foods" && p.sku === "TUN-SP",
+    )?.weekly,
+    [
+      1210, 1220, 1240, 1230, 1250, 1260, 1270, 1250, 1280, 1285, 1295, 1305,
+      1300,
+    ],
+  );
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Whole Foods" && p.sku === "TUN-OO",
+    )?.weekly,
+    [
+      1325, 1313, 1300, 1306, 1288, 1275, 1269, 1263, 1250, 1238, 1250, 1244,
+      1250,
+    ],
+  );
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Whole Foods" && p.sku === "SAR-PL",
+    )?.weekly,
+    [820, 830, 840, 845, 850, 860, 865, 870, 880, 885, 890, 895, 900],
+  );
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Whole Foods" && p.sku === "MAC-CHILI",
+    )?.weekly,
+    [570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 620],
+  );
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Costco / Club" && p.sku === "TUN-SP",
+    )?.weekly,
+    [
+      1513, 1525, 1550, 1538, 1563, 1575, 1588, 1563, 1600, 1606, 1619, 1631,
+      1625,
+    ],
+  );
+  assert.deepEqual(
+    fixture.pinnedChannelSeries.find(
+      (p) => p.channel === "Costco / Club" && p.sku === "TRT-ORIG",
+    )?.weekly,
+    [570, 570, 555, 540, 525, 510, 495, 480, 465, 450, 480, 495, 510],
+  );
+
+  const wfTunSp = e.demandContext("TUN-SP", "Whole Foods");
+  assert.equal(wfTunSp.variance?.toFixed(1), "4.8");
+
+  const wfTunOo = e.demandContext("TUN-OO", "Whole Foods");
+  assert.equal(wfTunOo.variance?.toFixed(1), "-3.8");
+
+  const wfSarPl = e.demandContext("SAR-PL", "Whole Foods");
+  assert.equal(wfSarPl.variance?.toFixed(1), "7.1");
+
+  const wfMacChili = e.demandContext("MAC-CHILI", "Whole Foods");
+  assert.equal(wfMacChili.variance?.toFixed(1), "6.9");
+
+  const costcoTunSp = e.demandContext("TUN-SP", "Costco / Club");
+  assert.equal(costcoTunSp.variance?.toFixed(1), "4.8");
+
+  const costcoTrt = e.demandContext("TRT-ORIG", "Costco / Club");
+  assert.equal(costcoTrt.variance?.toFixed(1), "-10.5");
+  assert.equal(costcoTrt.confidence, "LOW");
+
+  for (const model of fixture.modeledDemand) {
+    assert.equal(
+      model.shares.reduce((a, b) => a + b, 0),
+      100,
+    );
+    for (let w = 0; w < 13; w++) {
+      const breakdown = e.getSkuWeeklyChannelBreakdown(model.sku, w);
+      assert.equal(
+        breakdown.reduce((a, b) => a + b, 0),
+        model.weekly[w],
+      );
+    }
+  }
+
+  const mismatches = e.reconcileChannelSeries();
+  assert.equal(mismatches.length, 0);
+
+  const oct5Total = fixture.modeledDemand.reduce(
+    (sum, m) => sum + m.weekly[12],
+    0,
+  );
+  assert.equal(oct5Total, 45100);
+
+  const tunSlWf = e.demandContext("TUN-SL", "Whole Foods");
+  assert.equal(tunSlWf.modeled, false);
+
+  const tunSlTarget = e.demandContext("TUN-SL", "Target");
+  assert.equal(tunSlTarget.weekly[12], 2240);
+
+  const preEventAverage = e.mean(
+    fixture.modeledDemand.find((m) => m.sku === "TUN-SL")!.weekly.slice(0, 4),
+  );
+  assert.equal(preEventAverage, 4300);
+  const lemon = e.lemonLearning();
+  assert.equal(lemon.average, 5500);
+  assert.equal(lemon.uplift?.toFixed(1), "27.9");
+});
 test("FBJ chronology reproduces every supplied exposure and protected-unit result", () => {
   for (const [id, exposure, protectedUnits, cost] of [
     ["accept", 6200, 0, 0],
