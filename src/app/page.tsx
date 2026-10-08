@@ -1,7 +1,2 @@
-import { WeeklyBrief } from "../components/NaturanaOverview";
-export const metadata = {
-  title: "Weekly Planning Brief | ScaleSight × NATURANA",
-};
-export default function Page() {
-  return <WeeklyBrief />;
-}
+import {PageHeading} from "../components/ui";
+export default function Page(){return <PageHeading eyebrow="FISHWIFE × SCALESIGHT" title="Weekly Supply Planning Brief" description="What changed, what could break the current plan, and which decisions deserve attention this week."/>;}

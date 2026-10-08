@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppShell } from "../components/AppShell";
 export const metadata: Metadata = {
-  title: "ScaleSight × NATURANA — Size-to-Buy Planning",
+  title: "Fishwife × ScaleSight — Supply Commitment Planning",
   description:
-    "An illustrative NATURANA × Understatement planning concept. Public catalog information and synthetic operating assumptions; analysis maintained by ScaleSight.",
+    "A prepared Fishwife supply planning room. Illustrative operating inputs; analysis maintained by ScaleSight. Decisions made with Fishwife.",
   robots: { index: false, follow: false },
   icons: { icon: "/icon.svg" },
 };
