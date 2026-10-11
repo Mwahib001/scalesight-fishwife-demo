@@ -24,6 +24,7 @@ import {
   Stamp,
 } from "./ui";
 import { DecisionDrawer } from "./DecisionDrawer";
+import { LiveDate } from "./LiveDate";
 export function WeeklyBrief() {
   const [selected, setSelected] = useState<Decision | null>(null);
   const t = totals();
@@ -61,8 +62,12 @@ export function WeeklyBrief() {
   return (
     <>
       <div className="issue-line">
-        <span>Week commencing 5 Oct 2026</span>
-        <span>THE WEEKLY ISSUE / 08 OCT 2026</span>
+        <span>
+          Week commencing <LiveDate value="weekStart" />
+        </span>
+        <span>
+          THE WEEKLY ISSUE / <LiveDate uppercase />
+        </span>
       </div>
       <div className="brief-heading">
         <PageHeading
@@ -72,8 +77,12 @@ export function WeeklyBrief() {
         />
         <div className="brief-meta">
           <Reviewed />
-          <span>08 Oct 2026</span>
-          <span>Next planning review · 12 Oct</span>
+          <span>
+            <LiveDate />
+          </span>
+          <span>
+            Next planning review · <LiveDate value="nextReview" />
+          </span>
         </div>
       </div>
       <section aria-labelledby="attention-heading">
@@ -182,7 +191,9 @@ export function WeeklyBrief() {
           <p>{planningNote}</p>
           <div className="note-signature">
             <span>Monitoring next cycle</span>
-            <span>Mon 12 Oct</span>
+            <span>
+              <LiveDate value="nextReview" weekday />
+            </span>
           </div>
           <div style={{ marginTop: 18 }}>
             <PlanLink href="/managed-intelligence">

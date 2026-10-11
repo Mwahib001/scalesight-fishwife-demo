@@ -20,7 +20,8 @@ import {
   Workflow,
   X,
 } from "lucide-react";
-import { disclaimer, fixture } from "../data/fishwife.v1";
+import { disclaimer } from "../data/fishwife.v1";
+import { LiveDate } from "./LiveDate";
 export const nav = [
   ["/", "Weekly Brief", FileText],
   ["/demand", "Demand by Channel", ChartNoAxesCombined],
@@ -97,7 +98,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="small-dot" />
             Illustrative Planning Concept
           </span>
-          <span className="refresh">Refreshed {fixture.timeline.refresh}</span>
+          <span className="refresh">
+            Today · <LiveDate />
+          </span>
         </div>
       </header>
       {menu && (

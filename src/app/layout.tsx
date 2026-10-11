@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppShell } from "../components/AppShell";
+import { LiveDateProvider } from "../components/LiveDate";
 export const metadata: Metadata = {
   title: "Fishwife × ScaleSight — Supply Commitment Planning",
   description:
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <LiveDateProvider>
+          <AppShell>{children}</AppShell>
+        </LiveDateProvider>
       </body>
     </html>
   );
